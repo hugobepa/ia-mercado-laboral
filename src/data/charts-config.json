@@ -1,0 +1,37 @@
+{
+  "barChart": [
+    {
+      "label": "Productividad",
+      "value": 72
+    },
+    {
+      "label": "Reconversion",
+      "value": 58
+    },
+    {
+      "label": "Demanda de talento",
+      "value": 64
+    },
+    {
+      "label": "Automatizacion",
+      "value": 49
+    }
+  ],
+  "donutChart": [
+    {
+      "label": "Alta",
+      "value": 34,
+      "color": "#0f766e"
+    },
+    {
+      "label": "Media",
+      "value": 46,
+      "color": "#d97706"
+    },
+    {
+      "label": "Baja",
+      "value": 20,
+      "color": "#334155"
+    }
+  ]
+}

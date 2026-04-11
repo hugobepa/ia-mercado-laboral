@@ -1,0 +1,62 @@
+@import "tailwindcss";
+/* Importación de fuentes Google */
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@600;700&family=Inter:wght@400;500&display=swap");
+
+/* Variables globales */
+:root {
+  --color-primary: #c86405;
+  --color-primary-hover: #a55204;
+  --color-secondary: #4a7c59;
+  --color-secondary-hover: #3a6246;
+  --color-neutral: #f5f1e6;
+  --color-neutral-dark: #e8e1d1;
+  --color-text: #2c2c2c;
+  --color-text-light: #5a5a5a;
+
+  --font-heading: "Manrope", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+
+/* Reset básico */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background-color: var(--color-neutral);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* Tipografía responsive */
+h1 {
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+}
+h2 {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+}
+h3 {
+  font-size: clamp(1.25rem, 3vw, 1.5rem);
+}
+
+card-base {
+  @apply bg-neutral rounded-t-xl rounded-b-lg p-4 shadow-sm border border-neutral-dark/50;
+}

@@ -1,0 +1,31 @@
+---
+interface Item {
+  label: string;
+  value: number;
+}
+
+interface Props {
+  title: string;
+  items: Item[];
+}
+
+const { title, items = [] } = Astro.props;
+const maxValue = Math.max(...items.map((item) => item.value), 1);
+---
+
+<section class="chart-card" aria-labelledby="bar-chart-title">
+  <div class="chart-card__header">
+    <h3 id="bar-chart-title">{title}</h3>
+  </div>
+  <div class="bar-chart">
+    {items.map((item) => (
+      <div class="bar-chart__row">
+        <span>{item.label}</span>
+        <div class="bar-chart__track" aria-hidden="true">
+          <div class="bar-chart__fill" style={`width: ${(item.value / maxValue) * 100}%`}></div>
+        </div>
+        <strong>{item.value}%</strong>
+      </div>
+    ))}
+  </div>
+</section>

@@ -1,0 +1,26 @@
+---
+// src/pages/404.astro
+// Esta página se usa en desarrollo local
+// GitHub Pages usará public/404.html en producción
+
+const base = import.meta.env.BASE_URL || '/';
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Página no encontrada</title>
+    <meta name="description" content="La página que buscas no existe">
+</head>
+<body style="font-family: 'Inter', system-ui, sans-serif; background-color: #F5F1E6; color: #2C2C2C; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 2rem; margin: 0;">
+    <div style="text-align: center; max-width: 500px; background: white; padding: 3rem 2rem; border-radius: 1rem 1rem 0.75rem 0.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+        <span style="font-size: 3rem; display: block; margin-bottom: 1rem;">🔍</span>
+        <h1 style="font-size: clamp(4rem, 15vw, 8rem); font-weight: 700; color: #C86405; line-height: 1; margin-bottom: 1rem; font-family: 'Manrope', sans-serif;">404</h1>
+        <h2 style="font-size: clamp(1.25rem, 4vw, 1.5rem); font-weight: 600; margin-bottom: 0.5rem;">Página no encontrada</h2>
+        <p style="color: #2C2C2C; opacity: 0.8; margin-bottom: 2rem; line-height: 1.6;">Lo sentimos, la página que buscas no existe o ha sido movida.</p>
+        <a href={base} style="display: inline-block; background-color: #C86405; color: white; padding: 0.75rem 2rem; border-radius: 0.5rem; text-decoration: none; font-weight: 500; transition: background-color 0.2s ease;">← Volver al inicio</a>
+    </div>
+</body>
+</html>

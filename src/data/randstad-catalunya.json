@@ -1,0 +1,42 @@
+{
+  "resumen_ejecutivo": {
+    "titulo": "¿La IA me va a quitar el trabajo?",
+    "subtitulo": "Lo que dice la ciencia, explicado sin rollo",
+    "fecha_actualizacion": "2026",
+    "fuente_principal": "Randstad Research + INE + Idescat"
+  },
+  "cifras_clave_catalunya_2033": {
+    "ocupados_actuales_2023": 3842100,
+    "empleo_riesgo_automatizacion": 376526,
+    "porcentaje_riesgo": 9.8,
+    "empleo_mejora_productividad": 610894,
+    "porcentaje_mejora": 15.9,
+    "empleo_sin_efecto": 2854680,
+    "porcentaje_sin_efecto": 74.3,
+    "nuevos_empleos_creados": 302566,
+    "efecto_neto_estimado": -73960
+  },
+  "sectores_catalunya_mas_afectados": [
+    {
+      "sector": "Comercio",
+      "empleo_riesgo": 77234,
+      "nuevos_empleos": 47632,
+      "efecto_neto": -29602,
+      "ejemplo_cotidiano": "Dependientas de Barcelona, reponedores de supermercados"
+    },
+    {
+      "sector": "Hostelería y Turismo",
+      "empleo_riesgo": 42356,
+      "nuevos_empleos": 21178,
+      "efecto_neto": -21178,
+      "ejemplo_cotidiano": "Camareros de la Costa Brava, recepcionistas de hoteles"
+    },
+    {
+      "sector": "Tecnología y Consultoría",
+      "empleo_riesgo": 15167,
+      "nuevos_empleos": 29473,
+      "efecto_neto": 14306,
+      "ejemplo_cotidiano": "Programadores del 22@, consultores IT de Barcelona"
+    }
+  ]
+}

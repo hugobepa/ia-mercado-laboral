@@ -1,0 +1,39 @@
+---
+import BarChart from '../charts/BarChart.astro';
+import DonutChart from '../charts/DonutChart.astro';
+import Card from '../ui/Card.astro';
+
+interface SummaryItem {
+  title: string;
+  eyebrow: string;
+  description: string;
+}
+
+interface Props {
+  summary: SummaryItem[];
+  barItems: { label: string; value: number }[];
+  donutItems: { label: string; value: number; color: string }[];
+}
+
+const { summary = [], barItems = [], donutItems = [] } = Astro.props;
+---
+
+<section id="datos" class="data-section">
+  <div class="section-heading">
+    <p class="eyebrow">Panorama</p>
+    <h2>Lectura rapida del estudio</h2>
+  </div>
+
+  <div class="summary-grid">
+    {summary.map((item) => (
+      <Card title={item.title} eyebrow={item.eyebrow}>
+        <p>{item.description}</p>
+      </Card>
+    ))}
+  </div>
+
+  <div id="graficos" class="chart-grid">
+    <BarChart title="Impacto estimado por ambito" items={barItems} />
+    <DonutChart title="Distribucion de niveles de adopcion" slices={donutItems} />
+  </div>
+</section>

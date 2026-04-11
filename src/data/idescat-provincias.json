@@ -1,0 +1,24 @@
+{
+  "provincias": [
+    {
+      "nombre": "Barcelona",
+      "pesoEconomico": 74,
+      "adopcionIA": 68
+    },
+    {
+      "nombre": "Girona",
+      "pesoEconomico": 8,
+      "adopcionIA": 41
+    },
+    {
+      "nombre": "Lleida",
+      "pesoEconomico": 7,
+      "adopcionIA": 36
+    },
+    {
+      "nombre": "Tarragona",
+      "pesoEconomico": 11,
+      "adopcionIA": 44
+    }
+  ]
+}

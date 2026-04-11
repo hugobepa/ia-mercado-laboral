@@ -1,0 +1,44 @@
+---
+interface Slice {
+  label: string;
+  value: number;
+  color: string;
+}
+
+interface Props {
+  title: string;
+  slices: Slice[];
+}
+
+const { title, slices = [] } = Astro.props;
+const total = slices.reduce((sum, slice) => sum + slice.value, 0) || 1;
+const gradient = slices
+  .map((slice, index) => {
+    const start = slices.slice(0, index).reduce((sum, current) => sum + current.value, 0);
+    const end = start + slice.value;
+    const startPct = (start / total) * 100;
+    const endPct = (end / total) * 100;
+    return `${slice.color} ${startPct}% ${endPct}%`;
+  })
+  .join(', ');
+---
+
+<section class="chart-card" aria-labelledby="donut-chart-title">
+  <div class="chart-card__header">
+    <h3 id="donut-chart-title">{title}</h3>
+  </div>
+  <div class="donut-chart">
+    <div class="donut-chart__visual" style={`background: conic-gradient(${gradient});`}>
+      <div class="donut-chart__inner">{total}%</div>
+    </div>
+    <ul class="donut-chart__legend">
+      {slices.map((slice) => (
+        <li>
+          <span class="donut-chart__swatch" style={`background:${slice.color};`}></span>
+          <span>{slice.label}</span>
+          <strong>{slice.value}%</strong>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>

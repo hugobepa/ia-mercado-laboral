@@ -1,0 +1,45 @@
+---
+// src/pages/index.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// Datos de ejemplo (luego vendrán de JSON)
+const datosEjemplo = {
+  titulo: "¿La IA me va a quitar el trabajo?",
+  subtitulo: "Datos Randstad 2024 - Cataluña",
+  cifras: {
+    ocupados: "3.84M",
+    riesgo: "9.8%",
+    mejora: "15.9%"
+  }
+};
+---
+
+<BaseLayout title={datosEjemplo.titulo}>
+  <main class="container mx-auto px-4 py-12">
+    <!-- Hero Section -->
+    <section class="mb-16 text-center">
+      <h1 class="text-4xl md:text-6xl font-bold text-primary mb-4">
+        {datosEjemplo.titulo}
+      </h1>
+      <p class="text-xl text-text-light mb-8">
+        {datosEjemplo.subtitulo}
+      </p>
+    </section>
+
+    <!-- Cifras Clave -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+      <div class="card-base p-6 text-center">
+        <p class="text-3xl font-bold text-secondary mb-2">{datosEjemplo.cifras.ocupados}</p>
+        <p class="text-text-light">Ocupados en Cataluña</p>
+      </div>
+      <div class="card-base p-6 text-center">
+        <p class="text-3xl font-bold text-primary mb-2">{datosEjemplo.cifras.riesgo}</p>
+        <p class="text-text-light">Empleo en riesgo</p>
+      </div>
+      <div class="card-base p-6 text-center">
+        <p class="text-3xl font-bold text-secondary mb-2">{datosEjemplo.cifras.mejora}</p>
+        <p class="text-text-light">Mejora productividad</p>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
