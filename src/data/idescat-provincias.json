@@ -2,23 +2,35 @@
   "provincias": [
     {
       "nombre": "Barcelona",
+      "ocupados_2023": 2891200,
       "pesoEconomico": 74,
-      "adopcionIA": 68
+      "adopcionIA": 68,
+      "riesgo_automatizacion_pct": 10.2,
+      "ejemplo_cotidiano": "En Barcelona, un administrativo usa IA para organizar correos, pero sigue tomando decisiones con criterio humano"
     },
     {
       "nombre": "Girona",
+      "ocupados_2023": 378400,
       "pesoEconomico": 8,
-      "adopcionIA": 41
+      "adopcionIA": 41,
+      "riesgo_automatizacion_pct": 9.1,
+      "ejemplo_cotidiano": "En la Costa Brava, un recepcionista usa IA para traducir, pero no sustituye la sonrisa y el trato cercano"
     },
     {
       "nombre": "Lleida",
+      "ocupados_2023": 189300,
       "pesoEconomico": 7,
-      "adopcionIA": 36
+      "adopcionIA": 36,
+      "riesgo_automatizacion_pct": 8.4,
+      "ejemplo_cotidiano": "En el campo de Lleida, un tractor con IA ayuda, pero no tiene el ojo experto del agricultor"
     },
     {
       "nombre": "Tarragona",
+      "ocupados_2023": 383200,
       "pesoEconomico": 11,
-      "adopcionIA": 44
+      "adopcionIA": 44,
+      "riesgo_automatizacion_pct": 9.6,
+      "ejemplo_cotidiano": "En el puerto de Tarragona, la IA optimiza rutas de contenedores, pero el operario resuelve imprevistos"
     }
   ]
 }

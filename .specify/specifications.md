@@ -134,3 +134,17 @@ Hosting gratuito y sencillo para proyectos estáticos.
 - [ ] `deploy.yml` configurado
 - [ ] Enlaces auditados (no absolutos internos)
 - [ ] Test manual post-despliegue
+
+## 🎯 Especificación 6: Página de Fuentes y Referencias (NUEVA)
+
+Qué: Página dedicada con todas las fuentes del estudio
+Por qué: Credibilidad, transparencia, requisito original
+Requisitos:
+
+- Tabla responsive (tabla desktop, cards mobile)
+- Columnas: Nombre (negrita), Tipo, Fuente, Descripción (max 40 chars), Enlace
+- Filtros por categoría (gubernamental, universidad, fundación)
+- Datos desde src/data/fuentes.json
+- Diseño coherente con DESIGN.md
+- Enlaces abren en nueva pestaña
+- Accesibilidad WCAG AA

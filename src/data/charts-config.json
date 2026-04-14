@@ -1,37 +1,16 @@
 {
-  "barChart": [
-    {
-      "label": "Productividad",
-      "value": 72
-    },
-    {
-      "label": "Reconversion",
-      "value": 58
-    },
-    {
-      "label": "Demanda de talento",
-      "value": 64
-    },
-    {
-      "label": "Automatizacion",
-      "value": 49
-    }
-  ],
-  "donutChart": [
-    {
-      "label": "Alta",
-      "value": 34,
-      "color": "#0f766e"
-    },
-    {
-      "label": "Media",
-      "value": 46,
-      "color": "#d97706"
-    },
-    {
-      "label": "Baja",
-      "value": 20,
-      "color": "#334155"
-    }
-  ]
+  "barChart": {
+    "chart": { "type": "bar", "height": 300 },
+    "series": [
+      { "name": "Empleo riesgo", "data": [77234, 42356, 31245, 15167] }
+    ],
+    "xaxis": { "categories": ["Comercio", "Hostelería", "Industria", "Tech"] },
+    "colors": ["#C86405", "#4A7C59", "#7B6F72"]
+  },
+  "donutChart": {
+    "chart": { "type": "donut" },
+    "series": [9.8, 15.9, 74.3],
+    "labels": ["En riesgo ⚠️", "Mejoran con IA ✨", "Sin cambio ✅"],
+    "colors": ["#C86405", "#4A7C59", "#7B6F72"]
+  }
 }

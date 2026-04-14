@@ -1,0 +1,83 @@
+{
+  "titulo": "Fuentes y Referencias del Estudio",
+  "subtitulo": "Todas las fuentes son oficiales, universitarias o de referencia reputada",
+  "categorias": [
+    { "id": "gubernamental", "nombre": "Gubernamental", "icono": "🏛️" },
+    { "id": "universidad", "nombre": "Universidad", "icono": "🎓" },
+    { "id": "fundacion", "nombre": "Fundación/Organismo", "icono": "🏢" }
+  ],
+  "fuentes": [
+    {
+      "nombre": "IA y Mercado de trabajo en España",
+      "tipo": "empleo",
+      "categoria": "fundacion",
+      "fuente": "Randstad Research",
+      "descripcion": "Impacto IA empleo España 2033",
+      "link": "https://www.randstadresearch.es/ia-mercado-trabajo-espana/",
+      "anio": 2024
+    },
+    {
+      "nombre": "Navigating inflation and employment in an era of supply shocks and AI",
+      "tipo": "economico",
+      "categoria": "gubernamental",
+      "fuente": "European Central Bank (ECB)",
+      "descripcion": "Estanflación, shocks oferta y rol del IA",
+      "link": "https://www.ecb.europa.eu/press/key/date/2026/html/ecb.sp260306_1~a4943607d7.ga.html",
+      "anio": 2026
+    },
+    {
+      "nombre": "Employment Projections 2024-2034 Technical Note",
+      "tipo": "empleo",
+      "categoria": "gubernamental",
+      "fuente": "U.S. Bureau of Labor Statistics (BLS)",
+      "descripcion": "Metodología proyecciones empleo y IA",
+      "link": "https://www.bls.gov/news.release/ecopro.tn.htm",
+      "anio": 2024
+    },
+    {
+      "nombre": "Metodología de trabajo decente: evolución, indicadores y adaptación en la era de la digitalización",
+      "tipo": "metodologia",
+      "categoria": "universidad",
+      "fuente": "Tomsk Polytechnic University",
+      "descripcion": "Indicadores trabajo era digital",
+      "link": "https://libcat.scu.edu/EdsRecord/edsdoj,edsdoj.44b7c08a0d14473fa1a55201c9661a88?sid=11574144",
+      "anio": 2024
+    },
+    {
+      "nombre": "Encuesta de Población Activa (EPA)",
+      "tipo": "empleo",
+      "categoria": "gubernamental",
+      "fuente": "INE / Idescat",
+      "descripcion": "Datos empleo trimestral España/Cat",
+      "link": "https://www.ine.es/prensa/epa_tabla.htm",
+      "anio": 2024
+    },
+    {
+      "nombre": "OECD Employment Outlook 2023",
+      "tipo": "economico",
+      "categoria": "fundacion",
+      "fuente": "OECD",
+      "descripcion": "IA y mercado laboral OCDE",
+      "link": "https://www.oecd.org/employment/oecd-employment-outlook-2023.htm",
+      "anio": 2023
+    },
+    {
+      "nombre": "Estratègia Catalunya IA 2030",
+      "tipo": "empleo",
+      "categoria": "gubernamental",
+      "fuente": "Generalitat de Catalunya",
+      "descripcion": "Estrategia IA Cataluña 2030",
+      "link": "https://politiquesdigitals.gencat.cat/ca/economia/catalonia-ai/",
+      "anio": 2024
+    },
+    {
+      "nombre": "World Employment and Social Outlook: Trends 2023",
+      "tipo": "empleo",
+      "categoria": "fundacion",
+      "fuente": "International Labour Organization (ILO)",
+      "descripcion": "Estanflación global y deterioro empleo calidad",
+      "link": "https://www.ilo.org/resource/news/faltering-global-employment-growth-and-pressure-decent-working-conditions",
+      "anio": 2023
+    }
+  ]
+}

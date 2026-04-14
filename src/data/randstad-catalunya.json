@@ -1,9 +1,9 @@
 {
   "resumen_ejecutivo": {
     "titulo": "¿La IA me va a quitar el trabajo?",
-    "subtitulo": "Lo que dice la ciencia, explicado sin rollo",
+    "subtitulo": "Datos Randstad 2024 + OECD 2023 - Explicado sin rollo",
     "fecha_actualizacion": "2026",
-    "fuente_principal": "Randstad Research + INE + Idescat"
+    "fuente_principal": "Randstad Research + INE + Idescat + OECD"
   },
   "cifras_clave_catalunya_2033": {
     "ocupados_actuales_2023": 3842100,
@@ -15,6 +15,14 @@
     "porcentaje_sin_efecto": 74.3,
     "nuevos_empleos_creados": 302566,
     "efecto_neto_estimado": -73960
+  },
+  "exposicion_ia_catalunya_2024": {
+    "fuerza_laboral_expuesta_pct": 32,
+    "riesgo_alto_automatizacion_pct": 10,
+    "transformacion_5_anios_pct": 24,
+    "empresas_con_ia_pct": 24,
+    "fuente": "ACCIÓ/CIDAI 2024",
+    "comparativa_ocde": 27
   },
   "sectores_catalunya_mas_afectados": [
     {
