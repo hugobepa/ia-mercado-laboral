@@ -50,6 +50,14 @@ export function resolveInternalHref(href: string, basePath?: string): string {
     return normalizedHref === "" ? "/" : normalizedHref;
   }
 
+  // If href already includes the deployment base path, keep it as-is.
+  if (
+    normalizedHref === normalizedBase ||
+    normalizedHref.startsWith(`${normalizedBase}/`)
+  ) {
+    return normalizedHref;
+  }
+
   if (normalizedHref === "/") {
     return `${normalizedBase}/`;
   }
