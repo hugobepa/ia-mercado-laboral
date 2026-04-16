@@ -1,262 +1,128 @@
 ---
-// Landing Principal - IA Mercado Laboral
-import BaseLayout from '../layouts/BaseLayout.astro';
-import Hero from '../components/sections/Hero.astro';
-import DataSection from '../components/sections/DataSection.astro';
-import Navigation from '../components/ui/Navigation.astro';
-// import SkeletonLoader from '../components/ui/SkeletonLoader.astro';
+import Button from "../components/ui/Button.astro";
+import Card from "../components/ui/Card.astro";
+import Table from "../components/ui/Table.astro";
+import chartsConfig from "../data/charts-config.json";
+import idescatData from "../data/idescat-provincias.json";
+import randstadData from "../data/randstad-catalunya.json";
+import BaseLayout from "../layouts/BaseLayout.astro";
 
-// Import data utilities
-import { dataProvider, CATALUNYA_PROVINCES } from '../utils/data-loader.ts';
-import type { SourceMetadata } from '../utils/types.ts';
+const pageTitle = "IA y Mercado Laboral en Catalunya";
+const pageDescription =
+  "Componentes UI base accesibles para visualizar el impacto de la IA en el mercado laboral.";
 
-// Load initial data and metadata at build time
-let sources: SourceMetadata[] = [];
-let initialDataLoaded = false;
+const sectors = randstadData.sectores_catalunya_mas_afectados.map((item) => ({
+  sector: item.sector,
+  riesgo: item.empleo_riesgo.toLocaleString("es-ES"),
+  nuevos: item.nuevos_empleos.toLocaleString("es-ES"),
+  neto: item.efecto_neto.toLocaleString("es-ES"),
+}));
 
-try {
-  sources = await dataProvider.getSources();
-  initialDataLoaded = true;
-} catch (error) {
-  console.error('Failed to load initial data sources:', error);
-  initialDataLoaded = false;
-}
+const provinceRows = idescatData.provincias.map((province) => ({
+  provincia: province.nombre,
+  ocupados: province.ocupados_2023.toLocaleString("es-ES"),
+  adopcionIA: `${province.adopcionIA}%`,
+  riesgo: `${province.riesgo_automatizacion_pct}%`,
+}));
 
-// Page metadata for SEO
-const pageTitle = "IA y Mercado Laboral en Catalunya - Datos 2024";
-const pageDescription = "Explora el impacto de la Inteligencia Artificial en el mercado laboral catalán. Datos actualizados de empleo, desempleo y sectores por provincia.";
+const chartSummary = {
+  categorias: chartsConfig.barChart.xaxis.categories.join(", "),
+  segmentos: chartsConfig.donutChart.labels.join(" | "),
+};
 ---
 
-<BaseLayout 
-  title={pageTitle}
-  description={pageDescription}
->
-  <!-- Skip Link for Accessibility -->
-  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-50 bg-blue-600 text-white px-4 py-2 rounded">
-    Saltar al contenido principal
-  </a>
-
-  <!-- Main Navigation -->
-  <Navigation />
-
-  <!-- Main Content -->
-  <main id="main-content" class="min-h-screen">
-    <!-- Hero Section -->
-    <Hero />
-
-    <!-- Province Filter Section -->
-    <section class="bg-gray-50 py-8 border-b border-gray-200" aria-label="Filtros de datos" style="background-color: #f9fafb; padding: 2rem 0; border-bottom: 1px solid #e5e7eb;">
-      <div class="container mx-auto px-4">
-        <div class="max-w-4xl mx-auto">
-          <div class="flex flex-col md:flex-row items-center gap-6">
-            <!-- Filter Description -->
-            <div class="flex-1">
-              <h2 class="text-lg font-semibold text-gray-900 mb-2">
-                Filtrar datos por provincia
-              </h2>
-              <p class="text-sm text-gray-600">
-                Selecciona una provincia para ver datos específicos o mantén "Todas" para el resumen de Catalunya
-              </p>
-            </div>
-
-            <!-- Province Filter Dropdown -->
-            <div class="flex-shrink-0">
-              <label for="province-filter" class="block text-sm font-medium text-gray-700 mb-2">
-                Provincia:
-              </label>
-              <select 
-                id="province-filter"
-                name="province"
-                class="block w-48 px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white
-                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                aria-describedby="filter-description"
-                hx-get="/api/charts/update"
-                hx-trigger="change delay:300ms"
-                hx-target="#charts-grid"
-                hx-swap="innerHTML transition:true"
-                hx-indicator="#loading-indicator"
-              >
-                <option value="all">Todas las provincias</option>
-                {CATALUNYA_PROVINCES.map(province => (
-                  <option value={province.id}>{province.name}</option>
-                ))}
-              </select>
-              <p id="filter-description" class="text-xs text-gray-500 mt-1">
-                Los gráficos se actualizarán automáticamente
-              </p>
-            </div>
-
-            <!-- Loading Indicator -->
-            <div id="loading-indicator" class="htmx-indicator flex items-center text-blue-600">
-              <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-              <span class="text-sm">Cargando datos...</span>
-            </div>
-          </div>
-
-          <!-- Filter Status Display -->
-          <div class="mt-4">
-            <p data-filter-label class="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded-md inline-block">
-              Mostrando datos de todas las provincias
-            </p>
-          </div>
-        </div>
+<BaseLayout title={pageTitle} description={pageDescription}>
+  <div class="page-shell space-y-8">
+    <section id="hero" class="space-y-4">
+      <p class="text-sm font-semibold uppercase tracking-wide text-[var(--color-secondary)]">
+        IA y Mercado Laboral
+      </p>
+      <h1 class="max-w-3xl text-balance font-bold text-[var(--color-text)]">
+        Datos laborales de Catalunya explicados con una interfaz clara y reutilizable.
+      </h1>
+      <p class="max-w-2xl text-[var(--color-text-light)]">
+        Este prototipo integra componentes base accesibles para acciones, tarjetas, tablas y
+        navegación responsive usando datos internos en JSON.
+      </p>
+      <div class="flex flex-wrap gap-3">
+        <Button variant="primary" href="#datos">Ver datos clave</Button>
+        <Button variant="secondary" href="#graficos">Resumen de graficos</Button>
+        <Button variant="outline" href="#fuentes">Fuentes</Button>
       </div>
     </section>
 
-    <!-- Data Visualization Section -->
-    <DataSection />
-
-    <!-- Data Sources Section -->
-    <section class="bg-white py-12 border-t border-gray-200" aria-labelledby="sources-title">
-      <div class="container mx-auto px-4">
-        <div class="max-w-4xl mx-auto">
-          <h2 id="sources-title" class="text-2xl font-bold text-gray-900 mb-8 text-center">
-            Fuentes de Datos
-          </h2>
-
-          {initialDataLoaded && sources.length > 0 ? (
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {sources.map(source => (
-                <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                  <h3 class="font-semibold text-gray-900 mb-2">{source.name}</h3>
-                  <p class="text-sm text-gray-600 mb-3">{source.description}</p>
-                  
-                  <dl class="text-xs space-y-1">
-                    <div class="flex justify-between">
-                      <dt class="text-gray-500">Año:</dt>
-                      <dd class="font-medium">{source.year}</dd>
-                    </div>
-                    <div class="flex justify-between">
-                      <dt class="text-gray-500">Actualización:</dt>
-                      <dd class="font-medium">
-                        {new Date(source.lastUpdated).toLocaleDateString('es-ES')}
-                      </dd>
-                    </div>
-                    <div class="flex justify-between">
-                      <dt class="text-gray-500">Metodología:</dt>
-                      <dd class="font-medium text-right">{source.methodology}</dd>
-                    </div>
-                  </dl>
-
-                  {source.url && (
-                    <div class="mt-4">
-                      <a 
-                        href={source.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="text-blue-600 hover:text-blue-800 text-sm inline-flex items-center"
-                        aria-label={`Ver fuente completa de ${source.name} (se abre en nueva ventana)`}
-                      >
-                        Ver fuente completa
-                        <svg class="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                          <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                        </svg>
-                      </a>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div class="text-center">
-              <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-                <p class="text-yellow-800">
-                  <strong>Información de fuentes no disponible</strong><br>
-                  Los datos se muestran pero no se pudieron cargar los metadatos de las fuentes.
-                </p>
-              </div>
-            </div>
-          )}
-
-          <!-- Data Disclaimer -->
-          <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 class="font-medium text-blue-900 mb-2">Sobre los datos</h3>
-            <p class="text-sm text-blue-800">
-              Los datos presentados proceden de fuentes oficiales y estudios reconocidos del mercado laboral. 
-              La interpretación del impacto de la IA es indicativa y puede variar según el contexto específico de cada sector y empresa.
-              Última actualización de datos: <time datetime="2024">{new Date().getFullYear()}</time>.
-            </p>
-          </div>
-        </div>
+    <section id="datos" aria-labelledby="datos-title" class="space-y-4">
+      <h2 id="datos-title" class="font-bold">Tarjetas de provincias</h2>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {idescatData.provincias.map((province) => (
+          <Card
+            variant="province"
+            title={province.nombre}
+            subtitle={`Adopcion IA ${province.adopcionIA}%`}
+            eyebrow="Provincia"
+          >
+            <p class="text-sm text-[var(--color-text)]">{province.ejemplo_cotidiano}</p>
+          </Card>
+        ))}
       </div>
+
+      <Card
+        variant="demographic"
+        title="Ejemplo de estado vacio"
+        eyebrow="Demografico"
+        empty={true}
+        emptyMessage="No hay muestra demografica para el filtro actual."
+        emptyCtaLabel="Restablecer filtros"
+        emptyCtaHref="#datos"
+      />
     </section>
 
-    <!-- Accessibility Features -->
-    <!-- Screen Reader Announcements -->
-    <div id="sr-announcements" class="sr-only" aria-live="polite" aria-atomic="true"></div>
-    
-    <!-- Statistics Summary for Screen Readers -->
-    <div data-stats-summary class="sr-only" data-province="all">
-      <!-- This will be populated dynamically with key statistics -->
-    </div>
-  </main>
+    <section id="graficos" aria-labelledby="tabla-title" class="space-y-4">
+      <h2 id="tabla-title" class="font-bold">Tabla responsive por sector</h2>
+      <Table
+        caption="Sectores de Catalunya mas afectados por IA"
+        columns={[
+          { key: "sector", label: "Sector" },
+          { key: "riesgo", label: "Empleo en riesgo" },
+          { key: "nuevos", label: "Nuevos empleos" },
+          { key: "neto", label: "Efecto neto" },
+        ]}
+        rows={sectors}
+      />
 
-  <!-- Footer Navigation -->
-  <footer class="bg-gray-900 text-white py-8" style="background-color: #111827; color: white; padding: 2rem 0;">
-    <div class="container mx-auto px-4">
-      <div class="max-w-4xl mx-auto text-center">
-        <p class="text-gray-400 text-sm mb-4">
-          Proyecto de análisis del impacto de la IA en el mercado laboral catalán
-        </p>
-        <div class="flex flex-wrap justify-center gap-6 text-sm">
-          <a href="#main-content" class="text-gray-300 hover:text-white">Ir al inicio</a>
-          <a href="mailto:info@example.com" class="text-gray-300 hover:text-white">Contacto</a>
-          <a href="/metodologia" class="text-gray-300 hover:text-white">Metodología</a>
-          <a href="/accesibilidad" class="text-gray-300 hover:text-white">Accesibilidad</a>
-        </div>
-        <p class="text-xs text-gray-500 mt-4">
-          &copy; {new Date().getFullYear()} - Datos abiertos para investigación y divulgación
-        </p>
-      </div>
-    </div>
-  </footer>
+      <h3 class="pt-4 text-lg font-bold">Tabla por provincia</h3>
+      <Table
+        caption="Indicadores provinciales de adopcion IA"
+        columns={[
+          { key: "provincia", label: "Provincia" },
+          { key: "ocupados", label: "Ocupados 2023" },
+          { key: "adopcionIA", label: "Adopcion IA" },
+          { key: "riesgo", label: "Riesgo automatizacion" },
+        ]}
+        rows={provinceRows}
+      />
+    </section>
+
+    <section id="fuentes" aria-labelledby="fuentes-title" class="space-y-4">
+      <h2 id="fuentes-title" class="font-bold">Integracion de JSON local</h2>
+      <Card variant="data" title="Resumen de charts-config.json" eyebrow="Datos locales">
+        <dl class="space-y-2 text-sm">
+          <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <dt class="font-semibold text-[var(--color-text-light)]">Categorias de barras</dt>
+            <dd>{chartSummary.categorias}</dd>
+          </div>
+          <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <dt class="font-semibold text-[var(--color-text-light)]">Segmentos donut</dt>
+            <dd>{chartSummary.segmentos}</dd>
+          </div>
+        </dl>
+      </Card>
+    </section>
+  </div>
+
+  <Fragment slot="footer">
+    <p class="text-sm text-[var(--color-text-light)]">
+      Datos de referencia: Randstad + Idescat. Interfaz mobile-first con foco accesible uniforme.
+    </p>
+  </Fragment>
 </BaseLayout>
-
-<!-- Province Filter Enhancement Script -->
-<script>
-  // Initialize province filter functionality
-  import('/src/utils/province-filter.js').then(module => {
-    module.default.init();
-  });
-
-  // Chart utilities initialization
-  import('/src/utils/chart-helpers.js').then(module => {
-    if (module.initializeCharts) {
-      module.initializeCharts();
-    }
-  });
-</script>
-
-<style>
-  /* Hide HTMX loading indicator by default */
-  .htmx-indicator {
-    display: none;
-  }
-  
-  /* Show when HTMX is loading */
-  .htmx-request .htmx-indicator {
-    display: flex !important;
-  }
-
-  /* Smooth transitions for chart updates */
-  #charts-grid {
-    transition: opacity 0.3s ease-in-out;
-  }
-
-  /* Province filter accessibility */
-  #province-filter:focus {
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
-  }
-
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .htmx-indicator {
-      font-size: 0.75rem;
-    }
-    
-    .htmx-indicator .animate-spin {
-      width: 0.875rem;
-      height: 0.875rem;
-    }
-  }
-</style>

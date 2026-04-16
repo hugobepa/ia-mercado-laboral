@@ -1,10 +1,118 @@
-<header class="site-header">
-  <a class="site-header__brand" href="/">IA mercado laboral</a>
-  <nav aria-label="Principal">
-    <ul class="site-header__nav">
-      <li><a href="#hero">Inicio</a></li>
-      <li><a href="#datos">Datos</a></li>
-      <li><a href="#graficos">Graficos</a></li>
+---
+import { resolveInternalHref, type NavItem } from "../../utils/navigation-path";
+
+interface Props {
+  items?: NavItem[];
+  currentPath?: string;
+  basePath?: string;
+  menuId?: string;
+  openLabel?: string;
+  closeLabel?: string;
+}
+
+const {
+  items = [
+    { label: "Inicio", href: "/" },
+    { label: "Datos", href: "/#datos" },
+    { label: "Graficos", href: "/#graficos" },
+    { label: "Fuentes", href: "/#fuentes" },
+  ],
+  currentPath = "/",
+  basePath = "",
+  menuId = "mobile-main-menu",
+  openLabel = "Abrir menu",
+  closeLabel = "Cerrar menu",
+} = Astro.props as Props;
+
+const resolvedItems = items.map((item) => ({
+  ...item,
+  href: resolveInternalHref(item.href, basePath),
+}));
+
+const normalize = (value: string) => value.replace(/\/$/, "") || "/";
+---
+
+<header class="fixed left-0 top-0 z-50 w-full border-b border-[var(--color-neutral-dark)] bg-[color:color-mix(in_oklab,var(--color-neutral)_90%,white_10%)] backdrop-blur">
+  <div class="page-shell flex h-16 items-center justify-between py-0">
+    <a
+      href={resolveInternalHref("/", basePath)}
+      class="focus-ring touch-target inline-flex items-center rounded-t-xl rounded-b-lg px-3 text-sm font-bold text-[var(--color-primary)] sm:text-base"
+      aria-label="Ir a inicio"
+    >
+      IA y Mercado Laboral
+    </a>
+
+    <nav class="hidden items-center gap-2 md:flex" aria-label="Navegacion principal">
+      {resolvedItems.map((item) => {
+        const isCurrent = normalize(item.href) === normalize(currentPath);
+        return (
+          <a
+            href={item.href}
+            aria-current={isCurrent ? "page" : undefined}
+            class:list={[
+              "focus-ring touch-target inline-flex items-center rounded-t-xl rounded-b-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+              isCurrent
+                ? "bg-[var(--color-primary)] text-[var(--color-neutral)]"
+                : "text-[var(--color-text)] hover:bg-[var(--color-neutral-dark)]",
+            ]}
+          >
+            {item.label}
+          </a>
+        );
+      })}
+    </nav>
+
+    <button
+      id="mobile-menu-button"
+      type="button"
+      class="focus-ring touch-target inline-flex items-center justify-center rounded-t-xl rounded-b-lg border border-[var(--color-neutral-dark)] bg-[var(--color-neutral)] p-2 text-[var(--color-text)] md:hidden"
+      aria-controls={menuId}
+      aria-expanded="false"
+      aria-label={openLabel}
+      hx-on:click={`
+        const menu = document.getElementById('${menuId}');
+        const expanded = this.getAttribute('aria-expanded') === 'true';
+        this.setAttribute('aria-expanded', String(!expanded));
+        this.setAttribute('aria-label', !expanded ? '${closeLabel}' : '${openLabel}');
+        if (menu) menu.classList.toggle('hidden');
+      `}
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-5 w-5" aria-hidden="true">
+        <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+      </svg>
+      <span class="sr-only">{openLabel}</span>
+    </button>
+  </div>
+
+  <nav id={menuId} class="hidden border-t border-[var(--color-neutral-dark)] bg-[var(--color-neutral)] md:hidden" aria-label="Navegacion movil">
+    <ul class="page-shell space-y-2 py-3">
+      {resolvedItems.map((item) => (
+        <li>
+          <a
+            href={item.href}
+            class="focus-ring touch-target inline-flex w-full items-center rounded-t-xl rounded-b-lg px-3 py-2 text-base font-medium text-[var(--color-text)] transition-all duration-200 hover:bg-[var(--color-neutral-dark)]"
+          >
+            {item.label}
+          </a>
+        </li>
+      ))}
     </ul>
   </nav>
+
+  <noscript>
+    <nav class="border-t border-[var(--color-neutral-dark)] bg-[var(--color-neutral)] md:hidden" aria-label="Navegacion movil sin javascript">
+      <ul class="page-shell space-y-2 py-3">
+        {resolvedItems.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class="touch-target inline-flex w-full items-center rounded-t-xl rounded-b-lg px-3 py-2 text-base font-medium text-[var(--color-text)]"
+            >
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </noscript>
 </header>

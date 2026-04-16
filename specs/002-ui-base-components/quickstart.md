@@ -71,6 +71,34 @@ bun run dev
 - Verificar fallback sin JS en navegación móvil.
 - Verificar rutas bajo base path de subruta.
 
+### 6.1 Validación obligatoria con Playwright-CLI (localhost)
+
+1. Levantar app en local:
+
+```bash
+bun run dev
+```
+
+2. Abrir navegador controlado por Playwright-CLI para validación manual:
+
+```bash
+bunx playwright open http://localhost:4321
+```
+
+3. Verificar manualmente en Playwright-CLI:
+
+- navegación desktop y móvil
+- menú hamburguesa con ARIA y fallback sin JS
+- focus-visible uniforme
+- contraste AA en textos relevantes
+
+### 6.2 Protocolo de medición para SC-002 (<20s)
+
+- Muestra mínima: 10 ejecuciones manuales (5 desktop, 5 móvil).
+- Tarea medida: abrir menú principal y navegar al destino objetivo.
+- Criterio de éxito: al menos 95% de ejecuciones completadas en menos de 20 segundos.
+- Registro: anotar tiempo por ejecución y resumen final en este documento.
+
 ## 7. Build de verificación
 
 ```bash

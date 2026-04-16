@@ -1,16 +1,57 @@
 ---
 interface Props {
+  variant?: "base" | "province" | "data" | "demographic";
   title?: string;
   eyebrow?: string;
+  subtitle?: string;
+  empty?: boolean;
+  emptyMessage?: string;
+  emptyCtaLabel?: string;
+  emptyCtaHref?: string;
 }
 
-const { title, eyebrow } = Astro.props;
+const {
+  variant = "base",
+  title,
+  eyebrow,
+  subtitle,
+  empty = false,
+  emptyMessage = "No hay datos disponibles para este bloque.",
+  emptyCtaLabel = "Ver resumen general",
+  emptyCtaHref = "/",
+} = Astro.props as Props;
+
+const variantClasses = {
+  base: "",
+  province: "border-l-4 border-l-[var(--color-secondary)]",
+  data: "bg-[var(--color-neutral-dark)]",
+  demographic: "bg-[color:color-mix(in_oklab,var(--color-neutral)_85%,white_15%)]",
+};
 ---
 
-<article class="card">
-  {eyebrow && <p class="card__eyebrow">{eyebrow}</p>}
-  {title && <h3 class="card__title">{title}</h3>}
-  <div class="card__body">
-    <slot />
+<article class={`surface-card p-4 sm:p-5 ${variantClasses[variant]}`}>
+  {eyebrow && (
+    <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--color-text-light)]">
+      {eyebrow}
+    </p>
+  )}
+
+  {title && <h3 class="text-lg font-bold text-[var(--color-text)]">{title}</h3>}
+  {subtitle && <p class="mt-1 text-sm text-[var(--color-text-light)]">{subtitle}</p>}
+
+  <div class="mt-4">
+    {empty ? (
+      <div class="rounded-t-xl rounded-b-lg border border-[var(--color-neutral-dark)] bg-[var(--color-neutral)] p-4">
+        <p class="text-sm text-[var(--color-text)]">{emptyMessage}</p>
+        <a
+          href={emptyCtaHref}
+          class="focus-ring touch-target mt-3 inline-flex items-center rounded-t-xl rounded-b-lg border border-[var(--color-secondary)] px-4 py-2 text-sm font-medium text-[var(--color-secondary)] transition-all duration-200 hover:bg-[var(--color-secondary)] hover:text-[var(--color-neutral)]"
+        >
+          {emptyCtaLabel}
+        </a>
+      </div>
+    ) : (
+      <slot />
+    )}
   </div>
 </article>

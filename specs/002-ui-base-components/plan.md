@@ -1,6 +1,6 @@
 # Implementation Plan: UI Base Components
 
-**Branch**: `001-create-base-layout` | **Date**: April 16, 2026 | **Spec**: `specs/002-ui-base-components/spec.md`
+**Branch**: `002-ui-base-components` | **Date**: April 16, 2026 | **Spec**: `specs/002-ui-base-components/spec.md`
 **Input**: Feature specification from `specs/002-ui-base-components/spec.md`
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
@@ -84,7 +84,7 @@ tests/
 └── types/
 ```
 
-**Structure Decision**: Se usa la estructura web existente de Astro en un único proyecto y se limita el alcance de implementación a `src/components/ui/` para los 4 componentes base requeridos.
+**Structure Decision**: Se usa la estructura web existente de Astro en un único proyecto. El alcance principal está en `src/components/ui/` (4 componentes base) y se permiten cambios de soporte en `src/layouts/`, `src/styles/`, `src/utils/`, `src/pages/` y `astro.config.ts` para accesibilidad, integración y compatibilidad de despliegue.
 
 ## Complexity Tracking
 

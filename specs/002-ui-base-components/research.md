@@ -46,3 +46,9 @@
 - Rationale: Cumple constitución del proyecto y reduce trabajo fuera de alcance.
 - Alternatives considered:
   - Añadir tests automatizados: descartado por política explícita del proyecto.
+
+## Notas finales de tradeoff
+
+- Se prioriza HTMX en interacciones ligeras de navegación móvil para evitar islands React en casos simples.
+- Se mantiene soporte no-JS con navegación visible para preservar accesibilidad progresiva.
+- Se acepta una pequeña sobrecarga de clases utilitarias en componentes a cambio de consistencia visual y menor deuda técnica.

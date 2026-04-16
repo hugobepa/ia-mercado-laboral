@@ -1,0 +1,77 @@
+---
+interface TableColumn {
+  key: string;
+  label: string;
+}
+
+interface TableProps {
+  columns: TableColumn[];
+  rows: Record<string, string | number | null>[];
+  caption?: string;
+  emptyMessage?: string;
+  emptyCtaLabel?: string;
+  emptyCtaHref?: string;
+}
+
+const {
+  columns,
+  rows,
+  caption,
+  emptyMessage = "No hay datos disponibles para esta tabla.",
+  emptyCtaLabel = "Volver al inicio",
+  emptyCtaHref = "/",
+} = Astro.props as TableProps;
+
+const hasRows = Array.isArray(rows) && rows.length > 0;
+---
+
+{hasRows ? (
+  <div class="surface-card overflow-hidden">
+    <table class="hidden min-w-full border-collapse md:table">
+      {caption && <caption class="px-4 py-3 text-left text-sm text-[var(--color-text-light)]">{caption}</caption>}
+      <thead class="bg-[var(--color-neutral-dark)]">
+        <tr>
+          {columns.map((column) => (
+            <th class="px-4 py-3 text-left text-sm font-semibold text-[var(--color-text)]" scope="col">
+              {column.label}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => (
+          <tr class="border-t border-[var(--color-neutral-dark)]">
+            {columns.map((column) => (
+              <td class="px-4 py-3 text-sm text-[var(--color-text)]">{row[column.key] ?? "-"}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+
+    <div class="space-y-3 p-3 md:hidden">
+      {rows.map((row) => (
+        <article class="surface-card p-3">
+          {columns.map((column) => (
+            <div class="flex items-center justify-between gap-3 border-b border-[var(--color-neutral-dark)] py-2 last:border-b-0">
+              <span class="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-light)]">
+                {column.label}
+              </span>
+              <span class="text-sm font-medium text-[var(--color-text)]">{row[column.key] ?? "-"}</span>
+            </div>
+          ))}
+        </article>
+      ))}
+    </div>
+  </div>
+) : (
+  <div class="surface-card p-4">
+    <p class="text-sm text-[var(--color-text)]">{emptyMessage}</p>
+    <a
+      href={emptyCtaHref}
+      class="focus-ring touch-target mt-3 inline-flex items-center rounded-t-xl rounded-b-lg border border-[var(--color-secondary)] px-4 py-2 text-sm font-medium text-[var(--color-secondary)] transition-all duration-200 hover:bg-[var(--color-secondary)] hover:text-[var(--color-neutral)]"
+    >
+      {emptyCtaLabel}
+    </a>
+  </div>
+)}

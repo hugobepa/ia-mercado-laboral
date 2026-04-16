@@ -3,17 +3,27 @@ import node from "@astrojs/node";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
 
+const deployTarget = process.env.PUBLIC_DEPLOY_TARGET ?? "local";
+const isGitHubPages = deployTarget === "github-pages";
+const site = process.env.PUBLIC_SITE_URL ?? "https://example.github.io";
+const rawBasePath = process.env.PUBLIC_BASE_PATH ?? "";
+const normalizedBasePath = rawBasePath
+  ? `/${rawBasePath.replace(/^\/+|\/+$/g, "")}`
+  : "";
+
 export default defineConfig({
-  // Para desarrollo: usar server para API endpoints
-  // Para GitHub Pages: cambiar a "static" y remover adapter
-
-  // site: 'https://TU_USUARIO.github.io',
-  // base: '/NOMBRE_DEL_REPO',
-
-  output: "server",
-  adapter: node({
-    mode: "standalone",
-  }),
+  // Estrategia dinámica para subruta: usar variables de entorno en deploy.
+  site,
+  base: normalizedBasePath,
+  output: isGitHubPages ? "static" : "server",
+  ...(isGitHubPages
+    ? {}
+    : {
+        adapter: node({
+          mode: "standalone",
+        }),
+      }),
+  trailingSlash: "always",
 
   // Remover integrations - usaremos Tailwind 4.x via Vite
 
