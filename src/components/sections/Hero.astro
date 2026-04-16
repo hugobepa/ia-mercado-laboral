@@ -1,286 +1,53 @@
 ---
-// Hero Section with Market Data Overview
-import Button from '../ui/Button.astro';
-// import SkeletonLoader from '../ui/SkeletonLoader.astro';
-import { DataUtils } from '../../utils/data-loader.ts';
-import { formatters } from '../../utils/chart-helpers.js';
+import randstadData from "../../data/randstad-catalunya.json";
+import { SECTION_IDS, normalizeBasePath, resolveInternalHref } from "../../utils/navigation-path";
+import Button from "../ui/Button.astro";
 
-// Load key statistics for hero display
-let heroStats = {
-  totalEmployed: "3.84M",
-  unemploymentRate: 9.8,
-  aiImpactJobs: 15.9,
-  sectorsAnalyzed: 12,
-  dataYear: 2024
-};
-
-let dataLoaded = false;
-let errorMessage = '';
-
-try {
-  // Load overview data for hero statistics
-  const overviewData = await DataUtils.getOverviewData('all');
-  
-  if (overviewData.unemployment.length > 0) {
-    const avgUnemployment = overviewData.unemployment.reduce((sum, item) => sum + item.value, 0) / overviewData.unemployment.length;
-    heroStats.unemploymentRate = avgUnemployment;
-  }
-  
-  if (overviewData.aiImpact.length > 0) {
-    const avgAIImpact = overviewData.aiImpact.reduce((sum, item) => sum + item.value, 0) / overviewData.aiImpact.length;
-    heroStats.aiImpactJobs = avgAIImpact;
-  }
-  
-  heroStats.sectorsAnalyzed = Math.max(overviewData.unemployment.length, overviewData.aiImpact.length);
-  dataLoaded = true;
-} catch (error) {
-  console.error('Failed to load hero statistics:', error);
-  errorMessage = 'Error al cargar estadísticas principales';
-  dataLoaded = false;
+interface Props {
+  title?: string;
+  subtitle?: string;
+  ctaLabel?: string;
 }
+
+const {
+  title = randstadData.resumen_ejecutivo.titulo,
+  subtitle = randstadData.resumen_ejecutivo.subtitulo,
+  ctaLabel = "Ver datos clave",
+} = Astro.props as Props;
+
+const basePath = normalizeBasePath(import.meta.env.BASE_URL);
+const ctaHref = resolveInternalHref("/datos/#datos", basePath);
+const updateYear = randstadData.resumen_ejecutivo.fecha_actualizacion;
 ---
 
-<section id="hero" class="hero bg-gradient-to-br from-blue-50 to-indigo-100">
-  <div class="container mx-auto px-4 py-16 lg:py-24">
-    <div class="max-w-6xl mx-auto">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-        
-        <!-- Hero Content -->
-        <div class="hero__copy">
-          <!-- Eyebrow -->
-          <div class="mb-6">
-            <span class="inline-block bg-blue-600 text-white text-sm font-medium px-3 py-1 rounded-full">
-              Estudio {heroStats.dataYear}
-            </span>
-          </div>
+<section id={SECTION_IDS.inicio} class="section-landmark page-shell pt-6 sm:pt-10" aria-labelledby="hero-title">
+  <div class="surface-card grid grid-cols-1 gap-6 p-5 sm:p-6 lg:grid-cols-[1.2fr_1fr] lg:gap-8 lg:p-8">
+    <div class="space-y-4">
+      <p class="metric-label">Landing IA y Mercado Laboral</p>
+      <h1 id="hero-title" class="section-heading max-w-2xl text-3xl sm:text-4xl lg:text-5xl">{title}</h1>
+      <p class="section-copy max-w-xl text-sm sm:text-base">{subtitle}</p>
 
-          <!-- Main Title -->
-          <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
-            IA y mercado laboral en 
-            <span class="text-blue-600">Catalunya</span>
-          </h1>
+      <div class="flex flex-wrap gap-3 pt-2">
+        <Button href={ctaHref} ariaLabel="Ir a la seccion de datos clave">{ctaLabel}</Button>
+      </div>
 
-          <!-- Subtitle -->
-          <p class="text-xl text-gray-600 leading-relaxed mb-8 max-w-lg">
-            Análisis del impacto de la Inteligencia Artificial en el empleo catalán. 
-            Datos actualizados, tendencias sectoriales y perspectivas por provincia.
-          </p>
+      <p class="text-xs text-[var(--color-text-light)]">
+        Fuentes: {randstadData.resumen_ejecutivo.fuente_principal} · Actualizado {updateYear}
+      </p>
+    </div>
 
-          <!-- Call-to-Action Buttons -->
-          <div class="hero__actions flex flex-col sm:flex-row gap-4 mb-8">
-            <Button 
-              href="#datos"
-              aria-label="Ver resumen de datos del mercado laboral"
-            >
-              Ver resumen de datos
-            </Button>
-            <Button 
-              href="#charts-grid" 
-              variant="secondary"
-              aria-label="Ir a las gráficas interactivas"
-            >
-              Explorar gráficas
-            </Button>
-          </div>
-
-          <!-- Data Source Attribution -->
-          <p class="text-sm text-gray-500">
-            Fuentes: Randstad, Idescat, OECD | Datos {heroStats.dataYear}
-          </p>
+    <aside class="rounded-t-xl rounded-b-lg border border-[var(--color-neutral-dark)] bg-[var(--color-neutral-dark)] p-4 sm:p-5" aria-label="Resumen rapido">
+      <h2 class="text-base font-bold text-[var(--color-text)]">Resumen rapido</h2>
+      <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div class="rounded-t-xl rounded-b-lg bg-[var(--color-neutral)] p-3">
+          <p class="metric-label">Riesgo automatizacion</p>
+          <p class="metric-value">{randstadData.cifras_clave_catalunya_2033.porcentaje_riesgo}%</p>
         </div>
-
-        <!-- Hero Statistics Panel -->
-        <div class="hero__panel">
-          {dataLoaded ? (
-            <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
-              <!-- Panel Header -->
-              <div class="mb-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-2">
-                  Cifras clave de Catalunya
-                </h2>
-                <p class="text-sm text-gray-600">
-                  Resumen del impacto de la IA en el mercado laboral
-                </p>
-              </div>
-
-              <!-- Key Statistics Grid -->
-              <div class="grid grid-cols-2 gap-6">
-                <!-- Employment Stats -->
-                <div class="text-center">
-                  <div class="bg-blue-50 rounded-lg p-4 mb-3">
-                    <svg class="w-8 h-8 text-blue-600 mx-auto" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                      <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-                    </svg>
-                  </div>
-                  <p class="text-2xl font-bold text-gray-900 mb-1">{heroStats.totalEmployed}</p>
-                  <p class="text-sm text-gray-600">Población ocupada</p>
-                </div>
-
-                <!-- Unemployment Rate -->
-                <div class="text-center">
-                  <div class="bg-yellow-50 rounded-lg p-4 mb-3">
-                    <svg class="w-8 h-8 text-yellow-600 mx-auto" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                      <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                    </svg>
-                  </div>
-                  <p class="text-2xl font-bold text-gray-900 mb-1">
-                    {formatters.percentage(heroStats.unemploymentRate)}
-                  </p>
-                  <p class="text-sm text-gray-600">Tasa de paro</p>
-                </div>
-
-                <!-- AI Impact -->
-                <div class="text-center">
-                  <div class="bg-purple-50 rounded-lg p-4 mb-3">
-                    <svg class="w-8 h-8 text-purple-600 mx-auto" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                      <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
-                    </svg>
-                  </div>
-                  <p class="text-2xl font-bold text-gray-900 mb-1">
-                    {formatters.percentage(heroStats.aiImpactJobs)}
-                  </p>
-                  <p class="text-sm text-gray-600">Impacto IA empleo</p>
-                </div>
-
-                <!-- Sectors Analyzed -->
-                <div class="text-center">
-                  <div class="bg-emerald-50 rounded-lg p-4 mb-3">
-                    <svg class="w-8 h-8 text-emerald-600 mx-auto" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                      <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
-                    </svg>
-                  </div>
-                  <p class="text-2xl font-bold text-gray-900 mb-1">{heroStats.sectorsAnalyzed}</p>
-                  <p class="text-sm text-gray-600">Sectores analizados</p>
-                </div>
-              </div>
-
-              <!-- Quick Insights -->
-              <div class="mt-6 p-4 bg-gray-50 rounded-lg">
-                <h3 class="text-sm font-medium text-gray-900 mb-2">
-                  💡 Dato destacado
-                </h3>
-                <p class="text-sm text-gray-700">
-                  La adopción de IA en Catalunya muestra un{' '}
-                  {heroStats.aiImpactJobs > 10 ? 'alto' : 'moderado'} potencial de transformación laboral, 
-                  con especial impacto en sectores tecnológicos y servicios.
-                </p>
-              </div>
-
-              <!-- Last Updated Info -->
-              <div class="mt-4 text-center">
-                <p class="text-xs text-gray-500">
-                  Última actualización: <time datetime={heroStats.dataYear}>{new Date().toLocaleDateString('es-ES')}</time>
-                </p>
-              </div>
-            </div>
-          ) : errorMessage ? (
-            <!-- Error State -->
-            <div class="bg-white rounded-2xl shadow-xl p-8 border border-red-200">
-              <div class="text-center">
-                <svg class="w-12 h-12 text-red-500 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-                </svg>
-                <h3 class="text-lg font-medium text-red-900 mb-2">
-                  Error al cargar estadísticas
-                </h3>
-                <p class="text-sm text-red-700 mb-4">
-                  {errorMessage}
-                </p>
-                <button 
-                  onclick="window.location.reload()"
-                  class="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                >
-                  Intentar de nuevo
-                </button>
-              </div>
-            </div>
-          ) : (
-            <!-- Loading State -->
-            <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
-              <!-- 
-              <SkeletonLoader 
-                type="stats"
-                height="320px"
-                ariaLabel="Cargando estadísticas principales"
-              />
-              -->
-              <div style="height: 320px; display: flex; align-items: center; justify-content: center; background: #f9fafb; border-radius: 8px;">
-                <p>Cargando...</p>
-              </div>
-            </div>
-          )}
+        <div class="rounded-t-xl rounded-b-lg bg-[var(--color-neutral)] p-3">
+          <p class="metric-label">Mejora productividad</p>
+          <p class="metric-value">{randstadData.cifras_clave_catalunya_2033.porcentaje_mejora}%</p>
         </div>
       </div>
-    </div>
-  </div>
-
-  <!-- Scroll Indicator -->
-  <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 hidden lg:block">
-    <a 
-      href="#datos"
-      class="inline-flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors"
-      aria-label="Desplazarse hacia abajo para ver los datos"
-    >
-      <span class="text-sm mb-2">Ver datos</span>
-      <svg class="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-      </svg>
-    </a>
+    </aside>
   </div>
 </section>
-
-<style>
-  .hero {
-    position: relative;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-  }
-
-  /* Responsive adjustments */
-  @media (max-width: 1024px) {
-    .hero {
-      min-height: auto;
-      padding-top: 4rem;
-      padding-bottom: 4rem;
-    }
-  }
-
-  /* High contrast mode */
-  @media (prefers-contrast: high) {
-    .hero {
-      background-image: none;
-      background-color: white;
-      border-bottom: 2px solid black;
-    }
-    
-    .hero__panel {
-      border: 2px solid black;
-    }
-  }
-
-  /* Reduced motion */
-  @media (prefers-reduced-motion: reduce) {
-    .animate-bounce {
-      animation: none;
-    }
-  }
-
-  /* Print styles */
-  @media print {
-    .hero {
-      background-image: none;
-      padding-top: 2rem;
-      padding-bottom: 2rem;
-      min-height: auto;
-    }
-    
-    .hero__actions {
-      display: none;
-    }
-    
-    .scroll-indicator {
-      display: none;
-    }
-  }
-</style>

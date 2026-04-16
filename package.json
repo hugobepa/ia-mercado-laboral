@@ -14,11 +14,14 @@
     "preview": "bunx astro preview",
     "astro": "bunx astro",
     "build:test": "bun run build && bun run preview",
-    "clean": "rm -rf dist .astro"
+    "clean": "rm -rf dist .astro",
+    "ui:check": "bun scripts/playwright-ui-check.mjs",
+    "ui:check:headed": "bun scripts/playwright-ui-check.mjs --headed"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.2",
     "@tailwindcss/vite": "^4.2.2",
+    "playwright": "^1.59.1",
     "postcss": "^8.5.9",
     "tailwindcss": "^4.0.0"
   }

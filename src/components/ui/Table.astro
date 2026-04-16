@@ -4,9 +4,20 @@ interface TableColumn {
   label: string;
 }
 
+interface TableLinkCell {
+  text: string;
+  href?: string;
+  target?: string;
+  rel?: string;
+  clickable?: boolean;
+  ariaLabel?: string;
+}
+
+type TableCellValue = string | number | null | TableLinkCell;
+
 interface TableProps {
   columns: TableColumn[];
-  rows: Record<string, string | number | null>[];
+  rows: Record<string, TableCellValue>[];
   caption?: string;
   emptyMessage?: string;
   emptyCtaLabel?: string;
@@ -23,11 +34,15 @@ const {
 } = Astro.props as TableProps;
 
 const hasRows = Array.isArray(rows) && rows.length > 0;
+
+const isLinkCell = (value: TableCellValue): value is TableLinkCell => {
+  return typeof value === "object" && value !== null && "text" in value;
+};
 ---
 
 {hasRows ? (
   <div class="surface-card overflow-hidden">
-    <table class="hidden min-w-full border-collapse md:table">
+    <table class="hidden min-w-full border-collapse sm:table">
       {caption && <caption class="px-4 py-3 text-left text-sm text-[var(--color-text-light)]">{caption}</caption>}
       <thead class="bg-[var(--color-neutral-dark)]">
         <tr>
@@ -41,25 +56,67 @@ const hasRows = Array.isArray(rows) && rows.length > 0;
       <tbody>
         {rows.map((row) => (
           <tr class="border-t border-[var(--color-neutral-dark)]">
-            {columns.map((column) => (
-              <td class="px-4 py-3 text-sm text-[var(--color-text)]">{row[column.key] ?? "-"}</td>
-            ))}
+            {columns.map((column) => {
+              const cell = row[column.key];
+              return (
+              <td class="px-4 py-3 text-sm text-[var(--color-text)]">
+                {isLinkCell(cell) ? (
+                  cell.clickable !== false && cell.href ? (
+                    <a
+                      href={cell.href}
+                      target={cell.target ?? "_blank"}
+                      rel={cell.rel ?? "noopener noreferrer"}
+                      aria-label={cell.ariaLabel}
+                      class="focus-ring underline decoration-[var(--color-secondary)] underline-offset-2"
+                    >
+                      {cell.text}
+                    </a>
+                  ) : (
+                    <span class="font-medium text-[var(--color-text-light)]">{cell.text}</span>
+                  )
+                ) : (
+                  cell ?? "-"
+                )}
+              </td>
+              );
+            })}
           </tr>
         ))}
       </tbody>
     </table>
 
-    <div class="space-y-3 p-3 md:hidden">
+    <div class="space-y-3 p-3 sm:hidden">
       {rows.map((row) => (
         <article class="surface-card p-3">
-          {columns.map((column) => (
+          {columns.map((column) => {
+            const cell = row[column.key];
+            return (
             <div class="flex items-center justify-between gap-3 border-b border-[var(--color-neutral-dark)] py-2 last:border-b-0">
               <span class="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-light)]">
                 {column.label}
               </span>
-              <span class="text-sm font-medium text-[var(--color-text)]">{row[column.key] ?? "-"}</span>
+              <span class="text-sm font-medium text-[var(--color-text)]">
+                {isLinkCell(cell) ? (
+                  cell.clickable !== false && cell.href ? (
+                    <a
+                      href={cell.href}
+                      target={cell.target ?? "_blank"}
+                      rel={cell.rel ?? "noopener noreferrer"}
+                      aria-label={cell.ariaLabel}
+                      class="focus-ring underline decoration-[var(--color-secondary)] underline-offset-2"
+                    >
+                      {cell.text}
+                    </a>
+                  ) : (
+                    <span class="font-medium text-[var(--color-text-light)]">{cell.text}</span>
+                  )
+                ) : (
+                  cell ?? "-"
+                )}
+              </span>
             </div>
-          ))}
+            );
+          })}
         </article>
       ))}
     </div>

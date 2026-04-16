@@ -1,0 +1,17 @@
+---
+import ProvinceCards from "../components/sections/ProvinceCards.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const pageTitle = "Provincias | IA y Mercado Laboral";
+const pageDescription = "Impacto de la IA por provincias en Catalunya.";
+---
+
+<BaseLayout title={pageTitle} description={pageDescription}>
+  <ProvinceCards />
+
+  <Fragment slot="footer">
+    <p class="text-sm text-[var(--color-text-light)]">
+      Vista exclusiva por provincias para comparar Barcelona, Girona, Lleida y Tarragona.
+    </p>
+  </Fragment>
+</BaseLayout>

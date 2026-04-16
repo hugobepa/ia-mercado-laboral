@@ -3,9 +3,52 @@
   const chartInstances = new Map();
   let apexModulePromise = null;
 
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const existing = document.querySelector(`script[data-apex-src="${src}"]`);
+      if (existing) {
+        existing.addEventListener("load", () => resolve(), { once: true });
+        existing.addEventListener(
+          "error",
+          () => reject(new Error("Failed to load Apex script")),
+          { once: true },
+        );
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = src;
+      script.async = true;
+      script.dataset.apexSrc = src;
+      script.addEventListener("load", () => resolve(), { once: true });
+      script.addEventListener(
+        "error",
+        () => reject(new Error("Failed to load Apex script")),
+        { once: true },
+      );
+      document.head.appendChild(script);
+    });
+  }
+
   function loadApexCharts() {
     if (!apexModulePromise) {
-      apexModulePromise = import("apexcharts").then((mod) => mod.default || mod);
+      apexModulePromise = (async () => {
+        if (typeof window !== "undefined" && window.ApexCharts) {
+          return window.ApexCharts;
+        }
+
+        try {
+          const mod = await import("apexcharts");
+          return mod.default || mod;
+        } catch (error) {
+          console.warn(
+            "ApexCharts dynamic import failed, falling back to CDN",
+            error,
+          );
+          await loadScript("https://cdn.jsdelivr.net/npm/apexcharts");
+          return window.ApexCharts;
+        }
+      })();
     }
     return apexModulePromise;
   }
@@ -51,7 +94,9 @@
   }
 
   function getChartContainers(root = document) {
-    return Array.from(root.querySelectorAll("[data-chart-type='apex'][data-apex-config]"));
+    return Array.from(
+      root.querySelectorAll("[data-chart-type='apex'][data-apex-config]"),
+    );
   }
 
   function initializeImmediate(root = document) {
@@ -63,7 +108,9 @@
   }
 
   function initializeDeferred(root = document) {
-    const lazyContainers = getChartContainers(root).filter((el) => el.dataset.chartLazy === "true");
+    const lazyContainers = getChartContainers(root).filter(
+      (el) => el.dataset.chartLazy === "true",
+    );
     if (!lazyContainers.length) return;
 
     if (!window.IntersectionObserver) {
@@ -94,7 +141,9 @@
   document.addEventListener("DOMContentLoaded", () => initAll(document));
 
   document.addEventListener("htmx:beforeSwap", (event) => {
-    getChartContainers(event.target).forEach((container) => destroyChart(container));
+    getChartContainers(event.target).forEach((container) =>
+      destroyChart(container),
+    );
   });
 
   document.addEventListener("htmx:afterSwap", (event) => {
@@ -106,7 +155,9 @@
     initChart,
     destroyChart,
     destroyAll() {
-      getChartContainers(document).forEach((container) => destroyChart(container));
+      getChartContainers(document).forEach((container) =>
+        destroyChart(container),
+      );
     },
   };
 })();

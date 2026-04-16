@@ -23,7 +23,7 @@ export default defineConfig({
           mode: "standalone",
         }),
       }),
-  trailingSlash: "always",
+  trailingSlash: "ignore",
 
   // Remover integrations - usaremos Tailwind 4.x via Vite
 

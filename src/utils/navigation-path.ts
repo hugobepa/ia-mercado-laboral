@@ -3,6 +3,18 @@ export interface NavItem {
   href: string;
 }
 
+export const SECTION_IDS = {
+  inicio: "inicio",
+  datos: "datos",
+  sectores: "sectores",
+  provincias: "provincias",
+  fuentes: "fuentes",
+} as const;
+
+export function toSectionAnchor(sectionId: string): string {
+  return `#${sectionId}`;
+}
+
 function withLeadingSlash(value: string): string {
   if (!value) {
     return "/";
@@ -26,8 +38,13 @@ export function normalizeBasePath(rawBasePath?: string): string {
 }
 
 export function resolveInternalHref(href: string, basePath?: string): string {
+  if (/^https?:\/\//i.test(href)) {
+    return href;
+  }
+
+  const hashOnly = href.startsWith("#") ? `/${href}` : href;
   const normalizedBase = normalizeBasePath(basePath);
-  const normalizedHref = withoutTrailingSlash(withLeadingSlash(href));
+  const normalizedHref = withoutTrailingSlash(withLeadingSlash(hashOnly));
 
   if (!normalizedBase) {
     return normalizedHref === "" ? "/" : normalizedHref;

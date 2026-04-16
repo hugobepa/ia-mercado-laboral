@@ -1,131 +1,18 @@
 ---
-import Button from "../components/ui/Button.astro";
-import Card from "../components/ui/Card.astro";
-import Table from "../components/ui/Table.astro";
-import DataSection from "../components/sections/DataSection.astro";
-import chartsConfig from "../data/charts-config.json";
-import idescatData from "../data/idescat-provincias.json";
-import randstadData from "../data/randstad-catalunya.json";
+import Hero from "../components/sections/Hero.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 
 const pageTitle = "IA y Mercado Laboral en Catalunya";
 const pageDescription =
-  "Componentes UI base accesibles para visualizar el impacto de la IA en el mercado laboral.";
-
-const sectors = randstadData.sectores_catalunya_mas_afectados.map((item) => ({
-  sector: item.sector,
-  riesgo: item.empleo_riesgo.toLocaleString("es-ES"),
-  nuevos: item.nuevos_empleos.toLocaleString("es-ES"),
-  neto: item.efecto_neto.toLocaleString("es-ES"),
-}));
-
-const provinceRows = idescatData.provincias.map((province) => ({
-  provincia: province.nombre,
-  ocupados: province.ocupados_2023.toLocaleString("es-ES"),
-  adopcionIA: `${province.adopcionIA}%`,
-  riesgo: `${province.riesgo_automatizacion_pct}%`,
-}));
-
-const chartSummary = {
-  categorias: chartsConfig.barChart.xaxis.categories.join(", "),
-  segmentos: chartsConfig.donutChart.labels.join(" | "),
-};
+  "Landing reutilizable con secciones Hero, Datos y Provincias para visualizar el impacto de la IA en Catalunya.";
 ---
 
 <BaseLayout title={pageTitle} description={pageDescription}>
-  <div class="page-shell space-y-8">
-    <section id="hero" class="space-y-4">
-      <p class="text-sm font-semibold uppercase tracking-wide text-[var(--color-secondary)]">
-        IA y Mercado Laboral
-      </p>
-      <h1 class="max-w-3xl text-balance font-bold text-[var(--color-text)]">
-        Datos laborales de Catalunya explicados con una interfaz clara y reutilizable.
-      </h1>
-      <p class="max-w-2xl text-[var(--color-text-light)]">
-        Este prototipo integra componentes base accesibles para acciones, tarjetas, tablas y
-        navegacion responsive usando datos internos en JSON.
-      </p>
-      <div class="flex flex-wrap gap-3">
-        <Button variant="primary" href="#datos">Ver datos clave</Button>
-        <Button variant="secondary" href="#graficos">Resumen de graficos</Button>
-        <Button variant="outline" href="#fuentes">Fuentes</Button>
-      </div>
-    </section>
-
-    <section id="datos" aria-labelledby="datos-title" class="space-y-4">
-      <h2 id="datos-title" class="font-bold">Tarjetas de provincias</h2>
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {idescatData.provincias.map((province) => (
-          <Card
-            variant="province"
-            title={province.nombre}
-            subtitle={`Adopcion IA ${province.adopcionIA}%`}
-            eyebrow="Provincia"
-          >
-            <p class="text-sm text-[var(--color-text)]">{province.ejemplo_cotidiano}</p>
-          </Card>
-        ))}
-      </div>
-
-      <Card
-        variant="demographic"
-        title="Ejemplo de estado vacio"
-        eyebrow="Demografico"
-        empty={true}
-        emptyMessage="No hay muestra demografica para el filtro actual."
-        emptyCtaLabel="Restablecer filtros"
-        emptyCtaHref="#datos"
-      />
-    </section>
-
-    <DataSection />
-
-    <section id="tablas" aria-labelledby="tabla-title" class="space-y-4">
-      <h2 id="tabla-title" class="font-bold">Tabla responsive por sector</h2>
-      <Table
-        caption="Sectores de Catalunya mas afectados por IA"
-        columns={[
-          { key: "sector", label: "Sector" },
-          { key: "riesgo", label: "Empleo en riesgo" },
-          { key: "nuevos", label: "Nuevos empleos" },
-          { key: "neto", label: "Efecto neto" },
-        ]}
-        rows={sectors}
-      />
-
-      <h3 class="pt-4 text-lg font-bold">Tabla por provincia</h3>
-      <Table
-        caption="Indicadores provinciales de adopcion IA"
-        columns={[
-          { key: "provincia", label: "Provincia" },
-          { key: "ocupados", label: "Ocupados 2023" },
-          { key: "adopcionIA", label: "Adopcion IA" },
-          { key: "riesgo", label: "Riesgo automatizacion" },
-        ]}
-        rows={provinceRows}
-      />
-    </section>
-
-    <section id="fuentes" aria-labelledby="fuentes-title" class="space-y-4">
-      <h2 id="fuentes-title" class="font-bold">Integracion de JSON local</h2>
-      <Card variant="data" title="Resumen de charts-config.json" eyebrow="Datos locales">
-        <dl class="space-y-2 text-sm">
-          <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <dt class="font-semibold text-[var(--color-text-light)]">Categorias de barras</dt>
-            <dd>{chartSummary.categorias}</dd>
-          </div>
-          <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <dt class="font-semibold text-[var(--color-text-light)]">Segmentos donut</dt>
-            <dd>{chartSummary.segmentos}</dd>
-          </div>
-        </dl>
-      </Card>
-    </section>
-  </div>
+  <Hero />
 
   <Fragment slot="footer">
     <p class="text-sm text-[var(--color-text-light)]">
-      Datos de referencia: Randstad + Idescat. Interfaz mobile-first con foco accesible uniforme.
+      Datos de referencia: Randstad + Idescat. Landing mobile-first con foco accesible y enlaces seguros para subruta.
     </p>
   </Fragment>
 </BaseLayout>

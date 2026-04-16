@@ -7,10 +7,13 @@ interface Props {
   description?: string;
 }
 
-const { title, description } = Astro.props;
+const { title, description } = Astro.props as Props;
+const safeTitle = typeof title === "string" && title.trim().length > 0
+  ? title
+  : "IA y Mercado Laboral";
 ---
 
-<BaseLayout title={title} description={description}>
+<BaseLayout title={safeTitle} description={description}>
   <Navigation />
   <main class="page-shell">
     <slot />

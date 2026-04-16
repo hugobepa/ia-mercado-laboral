@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@600;700&family=Inter:wght@400;500&display=swap");
 
 @theme {
   --color-primary: #c86405;
@@ -96,7 +95,7 @@ textarea {
 }
 
 .skip-link {
-  @apply focus-ring absolute left-3 top-3 z-[100] -translate-y-20 rounded-lg bg-[var(--color-text)] px-4 py-2 text-sm font-medium text-[var(--color-neutral)] transition-transform duration-200 focus-visible:translate-y-0;
+  @apply absolute left-3 top-3 z-[100] -translate-y-20 rounded-lg bg-[var(--color-text)] px-4 py-2 text-sm font-medium text-[var(--color-neutral)] transition-transform duration-200 focus-visible:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-neutral)];
 }
 
 .htmx-indicator {
@@ -106,4 +105,28 @@ textarea {
 .htmx-request .htmx-indicator,
 .htmx-request.htmx-indicator {
   display: inline-flex;
+}
+
+.section-landmark {
+  @apply scroll-mt-24;
+}
+
+.section-heading {
+  @apply text-balance font-bold text-[var(--color-text)];
+}
+
+.section-copy {
+  @apply text-[var(--color-text-light)];
+}
+
+.metric-value {
+  @apply text-2xl font-bold text-[var(--color-text)];
+}
+
+.metric-label {
+  @apply text-xs font-semibold uppercase tracking-wide text-[var(--color-text-light)];
+}
+
+.status-unavailable {
+  @apply inline-flex items-center rounded-t-xl rounded-b-lg border border-[var(--color-neutral-dark)] bg-[var(--color-neutral-dark)] px-2 py-1 text-xs font-semibold text-[var(--color-text-light)];
 }

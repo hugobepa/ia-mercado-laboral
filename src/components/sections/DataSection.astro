@@ -1,44 +1,68 @@
 ---
-import BarChart from "../charts/BarChart.astro";
-import DonutChart from "../charts/DonutChart.astro";
-import LineChart from "../charts/LineChart.astro";
-import chartsConfig from "../../data/charts-config.json";
+import randstadData from "../../data/randstad-catalunya.json";
+import {
+formatNumberOrFallback,
+formatPercentOrFallback,
+} from "../../utils/formatters";
+import { SECTION_IDS } from "../../utils/navigation-path";
+import Card from "../ui/Card.astro";
 
 const currentPath = Astro.url.pathname;
+
+const randstadKpi = randstadData?.cifras_clave_catalunya_2033;
+const exposicion = randstadData?.exposicion_ia_catalunya_2024;
+
+const hasRandstad = Boolean(randstadKpi);
+const hasExposicion = Boolean(exposicion);
 ---
 
-<section id="graficos" class="space-y-5 py-8" aria-labelledby="graficos-title">
+<section id={SECTION_IDS.datos} class="section-landmark page-shell space-y-6 py-8" aria-labelledby="datos-title">
   <header class="space-y-2">
-    <p class="text-sm font-semibold uppercase tracking-wide text-[var(--color-secondary)]">ApexCharts Reutilizables</p>
-    <h2 id="graficos-title" class="font-bold text-[var(--color-text)]">Graficas interactivas con datos internos</h2>
-    <p class="max-w-3xl text-sm text-[var(--color-text-light)]">
-      Las tres visualizaciones comparten paleta, tipografia, tooltip, leyenda y carga diferida.
-      Si faltan datos se muestra estado vacio con CTA de recuperacion.
+    <p class="metric-label">Datos clave Randstad + Idescat</p>
+    <h2 id="datos-title" class="section-heading">Resumen laboral</h2>
+    <p class="section-copy max-w-3xl text-sm sm:text-base">
+      Esta seccion muestra indicadores clave de mercado laboral sin bloques territoriales ni visualizaciones.
     </p>
   </header>
 
-  <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
-    <BarChart
-      title="Sectores con empleo en riesgo"
-      ariaLabel="Grafica de barras de empleo en riesgo por sector"
-      config={chartsConfig.barChart}
-      currentPath={currentPath}
+  {hasRandstad ? (
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <Card variant="data" title={formatNumberOrFallback(randstadKpi.ocupados_actuales_2023)} subtitle="Ocupados en Catalunya" eyebrow="Mercado laboral" />
+      <Card variant="data" title={formatPercentOrFallback(randstadKpi.porcentaje_riesgo)} subtitle="Empleo en riesgo" eyebrow="Impacto IA" />
+      <Card variant="data" title={formatNumberOrFallback(randstadKpi.nuevos_empleos_creados)} subtitle="Nuevos empleos estimados" eyebrow="Proyeccion" />
+    </div>
+  ) : (
+    <Card
+      variant="demographic"
+      title="No hay datos de Randstad disponibles"
+      eyebrow="Estado de datos"
+      empty={true}
+      emptyMessage="No pudimos cargar cifras clave en este momento. El resto de la landing sigue disponible."
+      emptyCtaLabel="Reintentar"
+      emptyCtaHref={currentPath}
     />
+  )}
 
-    <DonutChart
-      title="Distribucion del impacto IA"
-      ariaLabel="Grafica donut de distribucion del impacto IA"
-      config={chartsConfig.donutChart}
-      currentPath={currentPath}
-    />
-
-    <div class="lg:col-span-2">
-      <LineChart
-        title="Tendencia proyectada 2023-2033"
-        ariaLabel="Grafica de lineas con evolucion anual de transformacion IA entre 2023 y 2033"
-        config={chartsConfig.lineChart}
-        currentPath={currentPath}
+  {hasExposicion && (
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <Card
+        variant="demographic"
+        title={formatPercentOrFallback(exposicion.fuerza_laboral_expuesta_pct)}
+        subtitle="Fuerza laboral expuesta"
+        eyebrow="Otros datos"
+      />
+      <Card
+        variant="demographic"
+        title={formatPercentOrFallback(exposicion.empresas_con_ia_pct)}
+        subtitle="Empresas con IA"
+        eyebrow="Otros datos"
+      />
+      <Card
+        variant="demographic"
+        title={formatPercentOrFallback(exposicion.transformacion_5_anios_pct)}
+        subtitle="Transformacion prevista (5 anos)"
+        eyebrow="Otros datos"
       />
     </div>
-  </div>
+  )}
 </section>

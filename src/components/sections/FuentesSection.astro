@@ -1,0 +1,308 @@
+---
+import fuentesData from "../../data/fuentes.json";
+import {
+formatTextOrFallback,
+isValidExternalUrl,
+truncateByWord,
+} from "../../utils/formatters";
+import {
+normalizeBasePath,
+resolveInternalHref,
+SECTION_IDS,
+} from "../../utils/navigation-path";
+import Card from "../ui/Card.astro";
+import Table from "../ui/Table.astro";
+
+interface FuenteRaw {
+  nombre?: string;
+  tipo?: string;
+  categoria?: string;
+  fuente?: string;
+  descripcion?: string;
+  link?: string;
+  anio?: number;
+}
+
+interface FuenteView {
+  nombre: string;
+  tipo: string;
+  categoria: string;
+  fuente: string;
+  descripcion: string;
+  descripcionTruncada: string;
+  link: string;
+  linkValido: boolean;
+  anio?: number;
+}
+
+const ALL_CATEGORY = "todas";
+const DEFAULT_CATEGORIES = [
+  { id: "gubernamental", nombre: "Gubernamental" },
+  { id: "universidad", nombre: "Universidad" },
+  { id: "fundacion", nombre: "Fundacion/Organismo" },
+];
+
+const basePath = normalizeBasePath(import.meta.env.BASE_URL);
+const sectionHref = resolveInternalHref("/fuentes/", basePath);
+
+const normalizeCategory = (value: unknown): string => {
+  const safe = typeof value === "string" ? value.trim().toLowerCase() : "";
+  if (safe === "gubernamental" || safe === "universidad" || safe === "fundacion") {
+    return safe;
+  }
+  return "otros";
+};
+
+const normalizeType = (value: unknown): string => {
+  const safe = typeof value === "string" ? value.trim().toLowerCase() : "";
+  return safe || "desconocido";
+};
+
+const mapTypeToLabel = (type: string): string => {
+  if (type === "empleo") return "Empleo";
+  if (type === "economico") return "Economico";
+  if (type === "metodologia") return "Metodologia";
+  return "Otro tipo";
+};
+
+const mapTypeToIconKey = (type: string): "empleo" | "economico" | "metodologia" | "neutral" => {
+  if (type === "empleo") return "empleo";
+  if (type === "economico") return "economico";
+  if (type === "metodologia") return "metodologia";
+  return "neutral";
+};
+
+const isValidFuente = (item: FuenteRaw): boolean => {
+  const nombre = formatTextOrFallback(item.nombre, "").trim();
+  const tipo = formatTextOrFallback(item.tipo, "").trim();
+  const fuente = formatTextOrFallback(item.fuente, "").trim();
+  const descripcion = formatTextOrFallback(item.descripcion, "").trim();
+  return Boolean(nombre && tipo && fuente && descripcion);
+};
+
+const rawFuentes: FuenteRaw[] = Array.isArray(fuentesData?.fuentes) ? fuentesData.fuentes : [];
+const validFuentes = rawFuentes.filter(isValidFuente);
+
+const fuentes: FuenteView[] = validFuentes.map((item) => {
+  const descripcion = formatTextOrFallback(item.descripcion, "Datos no disponibles");
+  const link = formatTextOrFallback(item.link, "");
+
+  return {
+    nombre: formatTextOrFallback(item.nombre, "Sin titulo"),
+    tipo: normalizeType(item.tipo),
+    categoria: normalizeCategory(item.categoria),
+    fuente: formatTextOrFallback(item.fuente, "Fuente no disponible"),
+    descripcion,
+    descripcionTruncada: truncateByWord(descripcion, 40) || "Datos no disponibles",
+    link,
+    linkValido: isValidExternalUrl(link),
+    anio: typeof item.anio === "number" ? item.anio : undefined,
+  };
+});
+
+const availableCategories =
+  Array.isArray(fuentesData?.categorias) && fuentesData.categorias.length > 0
+    ? fuentesData.categorias.map((item) => ({
+        id: normalizeCategory(item?.id),
+        nombre: formatTextOrFallback(item?.nombre, "Categoria"),
+      }))
+    : DEFAULT_CATEGORIES;
+
+const dedupedCategories = availableCategories.filter(
+  (item, index, self) =>
+    item.id !== "otros" && self.findIndex((candidate) => candidate.id === item.id) === index,
+);
+
+const selectedCategoryRaw = Astro.url.searchParams.get("categoria") ?? ALL_CATEGORY;
+const selectedCategory =
+  selectedCategoryRaw === ALL_CATEGORY ? ALL_CATEGORY : normalizeCategory(selectedCategoryRaw);
+
+const filteredFuentes =
+  selectedCategory === ALL_CATEGORY
+    ? fuentes
+    : fuentes.filter((item) => item.categoria === selectedCategory);
+
+const hasMinimumData = fuentes.length >= 8;
+
+const tableColumns = [
+  { key: "estudio", label: "Estudio" },
+  { key: "tipo", label: "Tipo" },
+  { key: "fuente", label: "Fuente" },
+  { key: "descripcion", label: "Descripcion" },
+  { key: "enlace", label: "Enlace" },
+];
+
+const tableRows = filteredFuentes.map((item) => ({
+  estudio: item.nombre,
+  tipo: mapTypeToLabel(item.tipo),
+  fuente: item.fuente,
+  descripcion: item.descripcionTruncada,
+  enlace: item.linkValido
+    ? {
+        text: "Abrir fuente",
+        href: item.link,
+        target: "_blank",
+        rel: "noopener noreferrer",
+        clickable: true,
+        ariaLabel: `Abrir fuente externa: ${item.nombre}`,
+      }
+    : {
+        text: "No disponible",
+        clickable: false,
+      },
+}));
+---
+
+<section id={SECTION_IDS.fuentes} class="page-shell section-landmark space-y-6" aria-labelledby="fuentes-title">
+  <header class="space-y-2">
+    <p class="metric-label">Transparencia de datos</p>
+    <h2 id="fuentes-title" class="section-heading">{formatTextOrFallback(fuentesData?.titulo, "Fuentes y Referencias")}</h2>
+    <p class="section-copy max-w-3xl text-sm sm:text-base">
+      {formatTextOrFallback(
+        fuentesData?.subtitulo,
+        "Listado de referencias oficiales, universitarias y de organismos reputados.",
+      )}
+    </p>
+  </header>
+
+  {!hasMinimumData && (
+    <Card
+      variant="demographic"
+      title="Datos de fuentes insuficientes"
+      eyebrow="Estado del dataset"
+      empty={true}
+      emptyMessage="Hay menos de 8 registros validos. Revisa el dataset para recuperar la vista completa."
+      emptyCtaLabel="Ir a fuentes"
+      emptyCtaHref={sectionHref}
+    />
+  )}
+
+  <section class="surface-card p-4 sm:p-5" aria-labelledby="filter-title">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div class="space-y-2">
+        <h3 id="filter-title" class="text-lg font-bold text-[var(--color-text)]">Filtrar por categoria</h3>
+        <p class="text-sm text-[var(--color-text-light)]">
+          Seleccion unica. Mantiene visibles tarjetas y tabla con los mismos campos.
+        </p>
+      </div>
+
+      <form method="get" action={sectionHref} class="flex flex-col gap-2 sm:flex-row sm:items-center" aria-label="Filtro de categoria de fuentes">
+        <label for="category-filter" class="text-sm font-medium text-[var(--color-text)]">Categoria</label>
+        <select
+          id="category-filter"
+          name="categoria"
+          class="focus-ring rounded-t-xl rounded-b-lg border border-[var(--color-neutral-dark)] bg-[var(--color-neutral)] px-3 py-2 text-sm text-[var(--color-text)]"
+        >
+          <option value={ALL_CATEGORY} selected={selectedCategory === ALL_CATEGORY}>Todas</option>
+          {dedupedCategories.map((category) => (
+            <option value={category.id} selected={selectedCategory === category.id}>
+              {category.nombre}
+            </option>
+          ))}
+        </select>
+        <button
+          type="submit"
+          class="focus-ring touch-target rounded-t-xl rounded-b-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-[var(--color-neutral)]"
+        >
+          Aplicar
+        </button>
+        <a
+          href={sectionHref}
+          class="focus-ring touch-target inline-flex items-center justify-center rounded-t-xl rounded-b-lg border border-[var(--color-neutral-dark)] px-4 py-2 text-sm font-medium text-[var(--color-text)]"
+        >
+          Limpiar
+        </a>
+      </form>
+    </div>
+  </section>
+
+  {filteredFuentes.length === 0 ? (
+    <Card
+      variant="demographic"
+      title="Sin resultados para esta categoria"
+      eyebrow="Filtro activo"
+      empty={true}
+      emptyMessage="No hay coincidencias con el filtro seleccionado."
+      emptyCtaLabel="Limpiar filtro"
+      emptyCtaHref={sectionHref}
+    />
+  ) : (
+    <>
+      <div class="space-y-4 sm:hidden" aria-label="Listado de fuentes en tarjetas para movil">
+        {filteredFuentes.map((item) => {
+          const iconKey = mapTypeToIconKey(item.tipo);
+          const iconAriaLabel = `Tipo de fuente: ${mapTypeToLabel(item.tipo)}`;
+
+          return (
+            <Card title={item.nombre} subtitle={item.fuente} eyebrow={mapTypeToLabel(item.tipo)}>
+              <div class="space-y-3 text-sm text-[var(--color-text)]">
+                <p class="font-bold text-[var(--color-primary)]">{item.nombre}</p>
+                <div class="flex items-center gap-2">
+                  <span aria-label={iconAriaLabel} title={iconAriaLabel}>
+                    {iconKey === "empleo" && (
+                      <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5 text-[var(--color-secondary)]" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 18h16M6 18V9h12v9M9 9V6h6v3" stroke-linecap="round" stroke-linejoin="round"></path>
+                      </svg>
+                    )}
+                    {iconKey === "economico" && (
+                      <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5 text-[var(--color-secondary)]" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 18h16M7 14l3-3 3 2 4-5" stroke-linecap="round" stroke-linejoin="round"></path>
+                        <circle cx="7" cy="14" r="1"></circle>
+                        <circle cx="10" cy="11" r="1"></circle>
+                        <circle cx="13" cy="13" r="1"></circle>
+                        <circle cx="17" cy="8" r="1"></circle>
+                      </svg>
+                    )}
+                    {iconKey === "metodologia" && (
+                      <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5 text-[var(--color-secondary)]" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 5h14v14H5zM9 9h6M9 12h6M9 15h4" stroke-linecap="round" stroke-linejoin="round"></path>
+                      </svg>
+                    )}
+                    {iconKey === "neutral" && (
+                      <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5 text-[var(--color-text-light)]" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <path d="M9 12h6" stroke-linecap="round"></path>
+                      </svg>
+                    )}
+                  </span>
+                  <span class="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-light)]">
+                    {mapTypeToLabel(item.tipo)}
+                  </span>
+                </div>
+                <p>
+                  <span class="font-semibold">Descripcion:</span>
+                  {" "}
+                  {item.descripcionTruncada}
+                </p>
+                {item.linkValido ? (
+                  <a
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="focus-ring inline-flex rounded-t-xl rounded-b-lg border border-[var(--color-secondary)] px-3 py-1.5 text-sm font-medium text-[var(--color-secondary)]"
+                    aria-label={`Abrir fuente externa: ${item.nombre}`}
+                  >
+                    Abrir fuente
+                  </a>
+                ) : (
+                  <span class="status-unavailable" aria-label="Enlace no disponible">No disponible</span>
+                )}
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+
+      <div class="hidden sm:block" aria-label="Listado de fuentes en tabla para escritorio">
+        <Table
+          columns={tableColumns}
+          rows={tableRows}
+          caption="Fuentes y referencias del estudio"
+          emptyMessage="No hay datos para la categoria seleccionada."
+          emptyCtaLabel="Limpiar filtro"
+          emptyCtaHref={sectionHref}
+        />
+      </div>
+    </>
+  )}
+</section>

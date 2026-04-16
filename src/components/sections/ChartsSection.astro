@@ -1,0 +1,84 @@
+---
+import chartsConfig from "../../data/charts-config.json";
+import { SECTION_IDS } from "../../utils/navigation-path";
+import BarChart from "../charts/BarChart.astro";
+import DonutChart from "../charts/DonutChart.astro";
+import LineChart from "../charts/LineChart.astro";
+import Card from "../ui/Card.astro";
+
+const hasBarChart = Boolean(chartsConfig?.barChart);
+const hasDonutChart = Boolean(chartsConfig?.donutChart);
+const hasLineChart = Boolean(chartsConfig?.lineChart);
+const currentPath = Astro.url.pathname;
+---
+
+<section id={SECTION_IDS.sectores} class="section-landmark page-shell space-y-4 py-8" aria-labelledby="charts-title">
+  <header class="space-y-2">
+    <p class="metric-label">Visualizaciones</p>
+    <h2 id="charts-title" class="section-heading">Graficos del impacto IA</h2>
+    <p class="section-copy max-w-3xl text-sm sm:text-base">
+      Bloque dedicado de visualizaciones para comparar riesgo, distribucion y evolucion anual.
+    </p>
+  </header>
+
+  <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+    {hasBarChart ? (
+      <BarChart
+        title="Sectores con empleo en riesgo"
+        ariaLabel="Grafica de barras de empleo en riesgo por sector"
+        config={chartsConfig.barChart}
+        currentPath={currentPath}
+      />
+    ) : (
+      <Card
+        variant="demographic"
+        title="Grafica de barras no disponible"
+        eyebrow="Estado de datos"
+        empty={true}
+        emptyMessage="No se pudo cargar el bloque de barras."
+        emptyCtaLabel="Recargar pagina"
+        emptyCtaHref={currentPath}
+      />
+    )}
+
+    {hasDonutChart ? (
+      <DonutChart
+        title="Distribucion del impacto IA"
+        ariaLabel="Grafica donut de distribucion del impacto IA"
+        config={chartsConfig.donutChart}
+        currentPath={currentPath}
+      />
+    ) : (
+      <Card
+        variant="demographic"
+        title="Grafica donut no disponible"
+        eyebrow="Estado de datos"
+        empty={true}
+        emptyMessage="No se pudo cargar el bloque donut."
+        emptyCtaLabel="Recargar pagina"
+        emptyCtaHref={currentPath}
+      />
+    )}
+
+    <div class="lg:col-span-2">
+      {hasLineChart ? (
+        <LineChart
+          title="Implantacion de IA por anos (2023-2033)"
+          ariaLabel="Grafica de lineas con evolucion anual de implantacion IA entre 2023 y 2033"
+          config={chartsConfig.lineChart}
+          currentPath={currentPath}
+        />
+      ) : (
+        <Card
+          variant="demographic"
+          title="Grafica de lineas no disponible"
+          eyebrow="Estado de datos"
+          empty={true}
+          emptyMessage="No se pudo cargar el bloque de lineas."
+          emptyCtaLabel="Recargar pagina"
+          emptyCtaHref={currentPath}
+        />
+      )}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,17 @@
+---
+import DataSection from "../components/sections/DataSection.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const pageTitle = "Datos | IA y Mercado Laboral";
+const pageDescription = "Datos clave del estudio IA y Mercado Laboral.";
+---
+
+<BaseLayout title={pageTitle} description={pageDescription}>
+  <DataSection />
+
+  <Fragment slot="footer">
+    <p class="text-sm text-[var(--color-text-light)]">
+      Datos clave y otros indicadores del estudio.
+    </p>
+  </Fragment>
+</BaseLayout>
