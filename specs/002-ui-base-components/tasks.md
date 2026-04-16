@@ -104,6 +104,8 @@
 - [x] T031 Definir protocolo de medición manual para SC-002 (muestra, pasos, umbral <20s) en specs/002-ui-base-components/quickstart.md
 - [ ] T032 Ejecutar validación manual obligatoria con Playwright-CLI en localhost y registrar evidencias en specs/002-ui-base-components/quickstart.md
 - [ ] T028 Ejecutar y registrar checklist de verificación responsive/accesibilidad/despliegue en specs/002-ui-base-components/quickstart.md
+- [ ] T033 Ejecutar prueba local completa al final de Fase 6 (manual + Playwright-CLI) validando que la sección de fuentes y el flujo principal funcionan correctamente
+- [ ] T034 Realizar merge de la rama de feature hacia main antes del push al repositorio GitHub
 
 ---
 
@@ -181,7 +183,7 @@ Task: T023 [US3] src/components/ui/Navigation.astro
 2. US1 para consistencia de componentes
 3. US2 para responsive de datos y navegación
 4. US3 para hardening de accesibilidad AA
-5. Polish final y checklist manual
+5. Polish final, pruebas locales manual + Playwright, merge a main y luego push a GitHub
 
 ### Parallel Team Strategy
 

@@ -105,6 +105,21 @@ bunx playwright open http://localhost:4321
 bun run build
 ```
 
+## 8. Cierre obligatorio antes de subir a GitHub
+
+1. Al final de Fase 6, ejecutar validación local completa:
+  - prueba manual del flujo principal
+  - prueba manual con Playwright-CLI (`bunx playwright open http://localhost:4321`)
+  - comprobar específicamente que la sección de fuentes funciona correctamente
+
+2. Si todo está correcto, integrar cambios a `main` antes del push:
+
+```bash
+git checkout main
+git merge <rama-feature>
+git push origin main
+```
+
 ## Resultado esperado
 
 Componentes base reutilizables, consistentes visualmente, accesibles, mobile-first y compatibles con despliegue en GitHub Pages en subruta.
