@@ -1,44 +1,317 @@
 ---
+// Enhanced Donut Chart with HTMX filtering support
 interface Slice {
   label: string;
   value: number;
   color: string;
+  province?: string; // For filtering
+  metadata?: {
+    source?: string;
+    year?: number;
+    description?: string;
+  };
 }
 
 interface Props {
   title: string;
   slices: Slice[];
+  filterable?: boolean; // Enable HTMX filtering
+  showDataTable?: boolean; // Accessibility data table
+  province?: string; // Current province filter
+  maxHeight?: string;
+  showPercentages?: boolean;
+  innerRadius?: number;
+  showLegend?: boolean;
 }
 
-const { title, slices = [] } = Astro.props;
-const total = slices.reduce((sum, slice) => sum + slice.value, 0) || 1;
-const gradient = slices
+const { 
+  title, 
+  slices = [],
+  filterable = false,
+  showDataTable = false,
+  province = 'all',
+  maxHeight = '320px',
+  showPercentages = true,
+  innerRadius = 40,
+  showLegend = true
+} = Astro.props;
+
+// Filter slices by province if specified
+const filteredSlices = province === 'all' 
+  ? slices 
+  : slices.filter(slice => 
+      !slice.province || 
+      slice.province.toLowerCase() === province.toLowerCase()
+    );
+
+const total = filteredSlices.reduce((sum, slice) => sum + slice.value, 0) || 1;
+
+// Generate conic gradient for donut visualization
+const gradient = filteredSlices
   .map((slice, index) => {
-    const start = slices.slice(0, index).reduce((sum, current) => sum + current.value, 0);
+    const start = filteredSlices.slice(0, index).reduce((sum, current) => sum + current.value, 0);
     const end = start + slice.value;
     const startPct = (start / total) * 100;
     const endPct = (end / total) * 100;
     return `${slice.color} ${startPct}% ${endPct}%`;
   })
   .join(', ');
+
+const chartId = `donut-chart-${Math.random().toString(36).substr(2, 9)}`;
+const maskImage = `radial-gradient(circle at center, transparent ${innerRadius}%, black ${innerRadius}%)`;
 ---
 
-<section class="chart-card" aria-labelledby="donut-chart-title">
+<section 
+  class="chart-card donut-chart-container" 
+  aria-labelledby={`${chartId}-title`}
+  data-chart-type="donut"
+  data-province={province}
+  style={`max-height: ${maxHeight}`}
+>
   <div class="chart-card__header">
-    <h3 id="donut-chart-title">{title}</h3>
+    <h3 id={`${chartId}-title`} class="text-lg font-semibold text-[var(--color-text)] mb-2">
+      {title}
+    </h3>
+    {province !== 'all' && (
+      <p class="text-sm text-[var(--color-text-light)] mb-4">
+        Datos filtrados para: <strong>{province}</strong>
+      </p>
+    )}
   </div>
-  <div class="donut-chart">
-    <div class="donut-chart__visual" style={`background: conic-gradient(${gradient});`}>
-      <div class="donut-chart__inner">{total}%</div>
+
+  {filteredSlices.length > 0 ? (
+    <div class="donut-chart flex flex-col lg:flex-row items-center gap-6">
+      
+      <!-- Donut Visualization -->
+      <div class="donut-chart__visual-container flex-shrink-0">
+        <div 
+          class="donut-chart__visual relative w-48 h-48 rounded-full transition-all duration-700 ease-out"
+          style={{
+            background: `conic-gradient(${gradient})`,
+            WebkitMask: maskImage,
+            mask: maskImage
+          }}
+          role="img"
+          aria-label={`Gráfica circular de ${title}`}
+        >
+          <!-- Inner circle with total -->
+          <div 
+            class="donut-chart__inner absolute inset-0 flex items-center justify-center"
+            style={`margin: ${innerRadius}px`}
+          >
+            <div class="text-center">
+              <div class="text-2xl font-bold text-[var(--color-text)]">
+                {showPercentages ? `${total.toFixed(1)}%` : total.toString()}
+              </div>
+              <div class="text-xs text-[var(--color-text-light)] uppercase tracking-wide">
+                Total
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legend -->
+      {showLegend && (
+        <div class="donut-chart__legend flex-1 min-w-0">
+          <ul class="space-y-3" role="list">
+            {filteredSlices.map((slice, index) => {
+              const percentage = ((slice.value / total) * 100);
+              const delay = index * 100;
+              
+              return (
+                <li 
+                  class="group flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-all duration-200"
+                  style={{ animationDelay: `${delay}ms` }}
+                  data-value={slice.value}
+                >
+                  <span 
+                    class="donut-chart__swatch w-3 h-3 rounded-full flex-shrink-0 transition-transform group-hover:scale-110"
+                    style={{ backgroundColor: slice.color }}
+                    aria-hidden="true"
+                  />
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                      <span class="text-sm font-medium text-[var(--color-text)] truncate pr-2">
+                        {slice.label}
+                      </span>
+                      <div class="flex items-center gap-2 flex-shrink-0">
+                        {showPercentages && (
+                          <span class="text-xs text-[var(--color-text-light)]">
+                            {percentage.toFixed(1)}%
+                          </span>
+                        )}
+                        <strong class="text-sm font-semibold text-[var(--color-primary)]">
+                          {slice.value}
+                        </strong>
+                      </div>
+                    </div>
+                    
+                    {slice.metadata?.description && (
+                      <p class="text-xs text-[var(--color-text-light)] mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {slice.metadata.description}
+                      </p>
+                    )}
+                    
+                    {slice.metadata && (slice.metadata.source || slice.metadata.year) && (
+                      <div class="text-xs text-[var(--color-text-light)] mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {slice.metadata.source && `Fuente: ${slice.metadata.source}`}
+                        {slice.metadata.year && ` (${slice.metadata.year})`}
+                      </div>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
     </div>
-    <ul class="donut-chart__legend">
-      {slices.map((slice) => (
-        <li>
-          <span class="donut-chart__swatch" style={`background:${slice.color};`}></span>
-          <span>{slice.label}</span>
-          <strong>{slice.value}%</strong>
-        </li>
-      ))}
-    </ul>
-  </div>
+  ) : (
+    <div class="empty-state p-6 text-center">
+      <div class="text-gray-400 mb-2">
+        <div class="w-12 h-12 mx-auto mb-2 bg-gray-200 rounded-full flex items-center justify-center">
+          🍩
+        </div>
+      </div>
+      <p class="text-sm text-[var(--color-text-light)]">
+        No hay datos disponibles para {province === 'all' ? 'la selección actual' : province}
+      </p>
+    </div>
+  )}
+
+  {/* Accessibility: Screen reader data table */}
+  {showDataTable && filteredSlices.length > 0 && (
+    <table class="sr-only">
+      <caption>Datos tabulares de {title}</caption>
+      <thead>
+        <tr>
+          <th>Categoría</th>
+          <th>Valor</th>
+          <th>Porcentaje</th>
+          {filteredSlices.some(slice => slice.metadata?.source) && <th>Fuente</th>}
+        </tr>
+      </thead>
+      <tbody>
+        {filteredSlices.map((slice) => (
+          <tr>
+            <td>{slice.label}</td>
+            <td>{slice.value}</td>
+            <td>{((slice.value / total) * 100).toFixed(1)}%</td>
+            {slice.metadata?.source && <td>{slice.metadata.source}</td>}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )}
+
+  {/* HTMX Loading State */}
+  {filterable && (
+    <div class="htmx-indicator absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center">
+      <div class="text-center">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-[var(--color-primary)] mx-auto mb-2"></div>
+        <p class="text-sm text-[var(--color-text-light)]">Actualizando gráfica...</p>
+      </div>
+    </div>
+  )}
 </section>
+
+<style>
+  .donut-chart-container {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .donut-chart__visual {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    animation: donutRotate 1s ease-out forwards;
+  }
+
+  .donut-chart__legend li {
+    animation: slideInRight 0.6s ease-out forwards;
+    opacity: 0;
+  }
+
+  @keyframes donutRotate {
+    from {
+      transform: rotate(-90deg) scale(0.8);
+      opacity: 0;
+    }
+    to {
+      transform: rotate(0deg) scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .htmx-indicator {
+    display: none;
+  }
+
+  .htmx-request .htmx-indicator {
+    display: flex;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 1024px) {
+    .donut-chart {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .donut-chart__visual {
+      width: 200px;
+      height: 200px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .donut-chart__visual {
+      width: 180px;
+      height: 180px;
+    }
+    
+    .chart-card__header h3 {
+      font-size: 1rem;
+    }
+  }
+
+  /* Focus styles for accessibility */
+  .donut-chart__legend li:focus-within {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .donut-chart__visual {
+      border: 2px solid currentColor;
+    }
+    
+    .donut-chart__swatch {
+      border: 1px solid currentColor;
+    }
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .donut-chart__visual,
+    .donut-chart__legend li {
+      animation: none;
+    }
+    
+    .donut-chart__swatch {
+      transition: none;
+    }
+  }
+</style>

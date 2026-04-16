@@ -1,0 +1,244 @@
+---
+// Loading Indicators and Error States for HTMX Chart Filtering
+// Enhanced UI feedback system with accessibility
+
+interface LoadingProps {
+  type?: 'spinner' | 'skeleton' | 'dots' | 'pulse';
+  size?: 'sm' | 'md' | 'lg';
+  message?: string;
+  showMessage?: boolean;
+  className?: string;
+}
+
+interface ErrorProps {
+  type?: 'network' | 'timeout' | 'data' | 'generic';
+  title?: string;
+  message?: string;
+  showRetry?: boolean;
+  onRetry?: () => void;
+  className?: string;
+}
+
+const { 
+  type = 'spinner',
+  size = 'md', 
+  message = 'Cargando...',
+  showMessage = true,
+  className = ''
+} = Astro.props as LoadingProps;
+
+// Size configurations
+const sizeClasses = {
+  sm: 'w-4 h-4',
+  md: 'w-6 h-6', 
+  lg: 'w-8 h-8'
+};
+
+const containerSizeClasses = {
+  sm: 'p-4 text-sm',
+  md: 'p-6 text-base',
+  lg: 'p-8 text-lg'
+};
+---
+
+<!-- Spinner Loading Indicator -->
+{type === 'spinner' && (
+  <div 
+    class={`loading-indicator flex items-center justify-center ${containerSizeClasses[size]} ${className}`}
+    role="status" 
+    aria-live="polite"
+    aria-label={message}
+  >
+    <div class="flex items-center space-x-3">
+      <div class={`animate-spin rounded-full border-2 border-gray-300 border-t-[var(--color-primary)] ${sizeClasses[size]}`} />
+      {showMessage && (
+        <span class="text-[var(--color-text-light)] font-medium">
+          {message}
+        </span>
+      )}
+    </div>
+  </div>
+)}
+
+<!-- Skeleton Loading (for chart placeholders) -->
+{type === 'skeleton' && (
+  <div 
+    class={`loading-skeleton ${containerSizeClasses[size]} ${className}`}
+    role="status"
+    aria-label="Cargando contenido"
+  >
+    <div class="animate-pulse space-y-4">
+      <!-- Chart title skeleton -->
+      <div class="h-6 bg-gray-300 rounded w-3/4"></div>
+      
+      <!-- Chart content skeleton -->
+      <div class="space-y-3">
+        <div class="grid grid-cols-4 gap-2">
+          <div class="h-8 bg-gray-300 rounded"></div>
+          <div class="h-12 bg-gray-300 rounded"></div>
+          <div class="h-6 bg-gray-300 rounded"></div>
+          <div class="h-10 bg-gray-300 rounded"></div>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div class="h-4 bg-gray-300 rounded"></div>
+          <div class="h-4 bg-gray-300 rounded"></div>
+          <div class="h-4 bg-gray-300 rounded"></div>
+        </div>
+      </div>
+      
+      {showMessage && (
+        <div class="flex items-center justify-center pt-4">
+          <span class="text-sm text-[var(--color-text-light)]">
+            {message}
+          </span>
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
+<!-- Dots Loading Animation -->
+{type === 'dots' && (
+  <div 
+    class={`loading-dots flex items-center justify-center ${containerSizeClasses[size]} ${className}`}
+    role="status"
+    aria-label={message}
+  >
+    <div class="flex items-center space-x-2">
+      <div class={`bg-[var(--color-primary)] rounded-full animate-bounce ${sizeClasses[size]}`} style="animation-delay: 0ms"></div>
+      <div class={`bg-[var(--color-primary)] rounded-full animate-bounce ${sizeClasses[size]}`} style="animation-delay: 150ms"></div>
+      <div class={`bg-[var(--color-primary)] rounded-full animate-bounce ${sizeClasses[size]}`} style="animation-delay: 300ms"></div>
+    </div>
+    {showMessage && (
+      <span class="ml-4 text-[var(--color-text-light)] font-medium">
+        {message}
+      </span>
+    )}
+  </div>
+)}
+
+<!-- Pulse Loading (minimal) -->
+{type === 'pulse' && (
+  <div 
+    class={`loading-pulse flex items-center justify-center ${containerSizeClasses[size]} ${className}`}
+    role="status"
+    aria-label={message}
+  >
+    <div class={`bg-[var(--color-primary)] rounded-full animate-pulse ${sizeClasses[size]}`}></div>
+    {showMessage && (
+      <span class="ml-3 text-[var(--color-text-light)] font-medium">
+        {message}
+      </span>
+    )}
+  </div>
+)}
+
+<style>
+  /* Enhanced loading animations */
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+  }
+
+  @keyframes pulse-custom {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .loading-skeleton .animate-pulse > * {
+    animation: pulse-custom 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-spin,
+    .animate-bounce,
+    .animate-pulse {
+      animation: none;
+    }
+    
+    .loading-skeleton .animate-pulse > * {
+      animation: none;
+      opacity: 0.7;
+    }
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .loading-indicator,
+    .loading-skeleton,
+    .loading-dots,
+    .loading-pulse {
+      border: 1px solid currentColor;
+    }
+  }
+</style>
+
+<script>
+  // Progressive enhancement for loading states
+  document.addEventListener('DOMContentLoaded', () => {
+    // Add loading announcements for better screen reader experience
+    const loadingIndicators = document.querySelectorAll('[role="status"]');
+    
+    loadingIndicators.forEach(indicator => {
+      const message = indicator.getAttribute('aria-label') || 'Cargando contenido';
+      
+      // Announce loading start after a brief delay
+      setTimeout(() => {
+        if (indicator.parentNode && indicator.isConnected) {
+          announceToScreenReader(`Iniciando carga: ${message}`);
+        }
+      }, 500);
+      
+      // Set up a timeout to handle long loading states
+      const timeout = setTimeout(() => {
+        if (indicator.parentNode && indicator.isConnected) {
+          announceToScreenReader('El contenido está tardando en cargar. Por favor, espere...');
+        }
+      }, 5000);
+      
+      // Clean up timeout when element is removed
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.removedNodes.forEach((node) => {
+            if (node === indicator) {
+              clearTimeout(timeout);
+              observer.disconnect();
+            }
+          });
+        });
+      });
+      
+      if (indicator.parentNode) {
+        observer.observe(indicator.parentNode, { childList: true });
+      }
+    });
+  });
+
+  function announceToScreenReader(message: string) {
+    const announcer = document.getElementById('loading-announcer') || document.createElement('div');
+    announcer.id = 'loading-announcer';
+    announcer.setAttribute('aria-live', 'polite');
+    announcer.setAttribute('aria-atomic', 'true');
+    announcer.className = 'sr-only';
+    
+    if (!announcer.parentNode) {
+      document.body.appendChild(announcer);
+    }
+    
+    announcer.textContent = message;
+    
+    // Clear after announcement
+    setTimeout(() => {
+      if (announcer.textContent === message) {
+        announcer.textContent = '';
+      }
+    }, 2000);
+  }
+</script>

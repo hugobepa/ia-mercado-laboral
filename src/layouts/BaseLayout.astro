@@ -2,9 +2,10 @@
 // src/layouts/BaseLayout.astro
 interface Props {
   title: string;
+  nav?: { label: string; href: string }[];
 }
 
-const { title } = Astro.props;
+const { title, nav } = Astro.props as Props;
 ---
 
 <!doctype html>
@@ -17,7 +18,113 @@ const { title } = Astro.props;
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
   </head>
-  <body class="bg-neutral text-text font-body">
-    <slot />
+  <body class="bg-[var(--color-neutral)] text-[var(--color-text)] font-body antialiased">
+
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:bg-white focus:rounded px-3 py-2">Saltar al contenido</a>
+
+    <!-- Header (fixed) -->
+    ---
+    <!-- Props: allow passing `nav` as prop; otherwise use default links -->
+    ---
+    
+    <header class="fixed top-0 left-0 w-full z-50 bg-[rgba(255,255,255,0.96)] backdrop-blur border-b" role="banner">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center">
+            <a href="/" class="text-lg font-heading text-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-hover)] rounded">IA y Mercado Laboral</a>
+          </div>
+
+          <!-- Desktop nav -->
+          <nav class="hidden md:flex space-x-6" aria-label="Navegación principal">
+            {/** default nav if none passed as prop **/}
+            {(() => {
+              const defaultNav = [
+                { label: 'Inicio', href: '/' },
+                { label: 'Datos', href: '/datos' },
+                { label: 'Provincias', href: '/provincias' },
+                { label: 'Fuentes', href: '/fuentes' }
+              ];
+              const items = nav ?? defaultNav;
+              return items.map((item: { label: string; href: string }) => (
+                <a class="text-sm font-medium text-[var(--color-text)] hover:text-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-hover)] rounded px-2 py-1" href={item.href}>{item.label}</a>
+              ));
+            })()}
+          </nav>
+
+          <!-- Mobile menu button -->
+          <div class="md:hidden">
+            <button id="mobile-menu-button" aria-controls="mobile-menu" aria-expanded="false" class="p-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+              <span class="sr-only">Abrir menú</span>
+              <!-- hamburger icon -->
+              <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile menu, hidden by default -->
+      <div id="mobile-menu" class="md:hidden hidden bg-[var(--color-neutral)] border-t">
+        <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+          {(() => {
+            const defaultNav = [
+              { label: 'Inicio', href: '/' },
+              { label: 'Datos', href: '/datos' },
+              { label: 'Provincias', href: '/provincias' },
+              { label: 'Fuentes', href: '/fuentes' }
+            ];
+            const items = nav ?? defaultNav;
+            return items.map((item: { label: string; href: string }) => (
+              <a class="block px-3 py-2 rounded text-base font-medium text-[var(--color-text)] hover:bg-[var(--color-neutral-dark)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]" href={item.href}>{item.label}</a>
+            ));
+          })()}
+        </div>
+      </div>
+
+    </header>
+
+    <!-- Main content (account for header height) -->
+    <main id="main-content" class="pt-20 min-h-screen" role="main">
+      <slot />
+    </main>
+
+    <!-- Optional footer slot visible on md+ only (no footer on mobile) -->
+    <footer class="hidden md:block bg-[var(--color-neutral)] border-t">
+      <slot name="footer" />
+    </footer>
+
+    <!-- Back to top button (mobile only): hidden until scroll -->
+    <button id="back-to-top" aria-label="Volver arriba" class="fixed bottom-6 right-4 md:hidden bg-[var(--color-primary)] text-white p-3 rounded-full shadow-lg opacity-0 pointer-events-none transform transition-opacity duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-hover)]">
+      ↑
+    </button>
+
+    <script>
+      // Mobile menu toggle
+      const menuBtn = document.getElementById('mobile-menu-button');
+      const mobileMenu = document.getElementById('mobile-menu');
+      if (menuBtn && mobileMenu) {
+        menuBtn.addEventListener('click', () => {
+          const expanded = menuBtn.getAttribute('aria-expanded') === 'true';
+          menuBtn.setAttribute('aria-expanded', String(!expanded));
+          mobileMenu.classList.toggle('hidden');
+        });
+      }
+
+      // Back to top visibility (mobile only)
+      const backBtn = document.getElementById('back-to-top');
+      if (backBtn) {
+        const onScroll = () => {
+          if (window.scrollY > 300) {
+            backBtn.classList.remove('opacity-0','pointer-events-none');
+            backBtn.classList.add('opacity-100');
+          } else {
+            backBtn.classList.add('opacity-0','pointer-events-none');
+            backBtn.classList.remove('opacity-100');
+          }
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        backBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+      }
+    </script>
+
   </body>
 </html>

@@ -1,39 +1,421 @@
 ---
+// Data Section with Consolidated Employment Data + HTMX Dynamic Filtering
 import BarChart from '../charts/BarChart.astro';
 import DonutChart from '../charts/DonutChart.astro';
 import Card from '../ui/Card.astro';
+// import ErrorBoundary from '../ui/ErrorBoundary.astro';
+import ProvinceFilter from '../ui/ProvinceFilter.astro';
+// import SkeletonLoader from '../ui/SkeletonLoader.astro';
 
-interface SummaryItem {
-  title: string;
-  eyebrow: string;
-  description: string;
+// Import data utilities and types
+import { formatters } from '../../utils/chart-helpers.js';
+import { DataUtils, dataProvider } from '../../utils/data-loader.ts';
+import { PROVINCES } from '../../utils/province-filter.ts';
+import type { ChartData } from '../../utils/types.ts';
+import { DataSource } from '../../utils/types.ts';
+
+// Get initial province filter from URL params (for SSR)
+const currentProvince = Astro.url.searchParams.get('province') || 'all';
+
+// Load consolidated employment data (optionally filtered)
+let unemploymentData: ChartData[] = [];
+let aiImpactData: ChartData[] = [];
+let sectorData: ChartData[] = [];
+let dataLoaded = false;
+let errorStates = {
+  unemployment: null as string | null,
+  aiImpact: null as string | null,
+  sectors: null as string | null
+};
+
+try {
+  // Load overview data for specific province or all
+  const overviewData = await DataUtils.getOverviewData(currentProvince);
+  unemploymentData = overviewData.unemployment;
+  aiImpactData = overviewData.aiImpact;
+  
+  // Load additional sector data if available
+  try {
+    sectorData = await dataProvider.getData(DataSource.RANDSTAD, { province: currentProvince });
+  } catch (sectorError) {
+    console.warn('Sector data not available:', sectorError);
+    errorStates.sectors = 'Datos sectoriales no disponibles';
+  }
+  
+  dataLoaded = true;
+  console.log('DataSection: Successfully loaded consolidated data for', currentProvince);
+} catch (error) {
+  console.error('Failed to load consolidated data:', error);
+  errorStates.unemployment = 'Error al cargar datos de desempleo';
+  errorStates.aiImpact = 'Error al cargar datos de impacto IA';
+  dataLoaded = false;
 }
 
-interface Props {
-  summary: SummaryItem[];
-  barItems: { label: string; value: number }[];
-  donutItems: { label: string; value: number; color: string }[];
-}
+// Generate summary statistics for cards
+const summaryStats = {
+  totalProvinces: PROVINCES.length,
+  avgUnemployment: unemploymentData.length > 0 
+    ? unemploymentData.reduce((sum, item) => sum + item.value, 0) / unemploymentData.length 
+    : 0,
+  avgAIImpact: aiImpactData.length > 0 
+    ? aiImpactData.reduce((sum, item) => sum + item.value, 0) / aiImpactData.length 
+    : 0,
+  dataYear: new Date().getFullYear()
+};
 
-const { summary = [], barItems = [], donutItems = [] } = Astro.props;
+// Summary cards data
+const summaryItems = [
+  {
+    title: "Análisis Territorial",
+    eyebrow: "Cobertura",
+    description: `Datos de las ${summaryStats.totalProvinces} provincias catalanas con metodología unificada y fuentes oficiales actualizadas.`
+  },
+  {
+    title: formatters.percentage(summaryStats.avgUnemployment),
+    eyebrow: "Desempleo Medio",
+    description: "Tasa promedio de desempleo en Catalunya basada en datos del Idescat y estadísticas oficiales."
+  },
+  {
+    title: formatters.percentage(summaryStats.avgAIImpact),
+    eyebrow: "Impacto IA",
+    description: "Estimación del impacto de la Inteligencia Artificial en los puestos de trabajo según Randstad."
+  },
+  {
+    title: `Datos ${summaryStats.dataYear}`,
+    eyebrow: "Actualización",
+    description: "Información actualizada con las últimas estadísticas disponibles de empleo y adopción tecnológica."
+  }
+];
+
+// Chart configuration IDs for HTMX updates
+const chartConfigs = {
+  unemployment: {
+    id: "unemployment-chart",
+    title: "Desempleo por Provincia",
+    ariaLabel: "Gráfica de barras mostrando la tasa de desempleo por provincia en Catalunya"
+  },
+  aiImpact: {
+    id: "ai-impact-chart", 
+    title: "Impacto IA en el Empleo",
+    ariaLabel: "Gráfica de donut mostrando el impacto estimado de la IA en diferentes sectores"
+  }
+};
 ---
 
-<section id="datos" class="data-section">
-  <div class="section-heading">
-    <p class="eyebrow">Panorama</p>
-    <h2>Lectura rapida del estudio</h2>
-  </div>
+<section id="datos" class="data-section bg-white py-16" aria-labelledby="datos-title">
+  <div class="container mx-auto px-4">
+    <div class="max-w-6xl mx-auto">
+      
+      <!-- Section Header -->
+      <div class="text-center mb-12">
+        <span class="inline-block bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full mb-4">
+          Panorama General
+        </span>
+        <h2 id="datos-title" class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          Radiografía del Mercado Laboral Catalán
+        </h2>
+        <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+          Datos consolidados del impacto de la Inteligencia Artificial en el empleo, 
+          con perspectiva territorial y sectorial para entender las tendencias actuales.
+        </p>
+      </div>
 
-  <div class="summary-grid">
-    {summary.map((item) => (
-      <Card title={item.title} eyebrow={item.eyebrow}>
-        <p>{item.description}</p>
-      </Card>
-    ))}
-  </div>
+      <!-- Summary Cards Grid -->
+      <div class="summary-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+        {summaryItems.map((item, index) => (
+          <Card 
+            title={item.title} 
+            eyebrow={item.eyebrow}
+          >
+            <p class="text-sm text-gray-600 leading-relaxed">
+              {item.description}
+            </p>
+          </Card>
+        ))}
+      </div>
 
-  <div id="graficos" class="chart-grid">
-    <BarChart title="Impacto estimado por ambito" items={barItems} />
-    <DonutChart title="Distribucion de niveles de adopcion" slices={donutItems} />
+      <!-- Charts Grid Section with HTMX Dynamic Updates -->
+      <div id="charts-grid" class="charts-grid">
+        
+        <!-- Charts Header with Province Filter -->
+        <div class="text-center mb-8">
+          <h3 class="text-2xl font-bold text-gray-900 mb-2">
+            Indicadores Clave por Provincia
+          </h3>
+          <p class="text-gray-600 mb-6">
+            Datos interactivos que se actualizan según la provincia seleccionada
+          </p>
+          
+          <!-- Province Filter Component -->
+          <div class="flex justify-center mb-8">
+            <ProvinceFilter 
+              currentProvince={currentProvince}
+              provinces={PROVINCES}
+              targetElementId="chart-container"
+            />
+          </div>
+        </div>
+
+        <!-- HTMX-Enabled Charts Container -->
+        <div 
+          id="chart-container" 
+          class="charts-container"
+          hx-target="this"
+          hx-swap="innerHTML"
+          hx-indicator="#charts-loading"
+        >
+          
+          <!-- Charts Grid -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Unemployment Bar Chart -->
+            <div class="chart-container bg-gray-50 rounded-xl p-6 border border-gray-200">
+              <div class="chart-header mb-4">
+                <h4 class="text-lg font-semibold text-gray-900">
+                  {chartConfigs.unemployment.title}
+                </h4>
+                <p class="text-sm text-gray-600">
+                  Comparativa territorial de tasas de desempleo
+                </p>
+              </div>
+              
+              {dataLoaded && unemploymentData.length > 0 && !errorStates.unemployment ? (
+                <BarChart
+                  title={chartConfigs.unemployment.title}
+                  items={unemploymentData}
+                  filterable={true}
+                  showDataTable={true}
+                  province={currentProvince}
+                />
+              ) : errorStates.unemployment ? (
+                <!-- 
+                <ErrorBoundary
+                  chartId={chartConfigs.unemployment.id}
+                  errorType="data"
+                  showRetry={true}
+                  fallbackContent="<p>No se pudieron cargar los datos de desempleo. Los datos históricos muestran tasas entre 8-12% en las provincias catalanas.</p>"
+                />
+                -->
+                <div style="background: #fef2f2; color: #991b1b; padding: 1rem; border-radius: 8px;">
+                  <p>Error: No se pudieron cargar los datos de desempleo.</p>
+                </div>
+              ) : (
+                <!-- 
+                <SkeletonLoader 
+                  type="bar"
+                  height="320px"
+                  showTitle={false}
+                  ariaLabel="Cargando datos de desempleo por provincia"
+                />
+                -->
+                <div style="height: 320px; display: flex; align-items: center; justify-content: center; background: #f9fafb; border-radius: 8px;">
+                  <p>Cargando datos...</p>
+                </div>
+              )}
+            </div>
+
+            <!-- AI Impact Donut Chart -->
+            <div class="chart-container bg-gray-50 rounded-xl p-6 border border-gray-200">
+              <div class="chart-header mb-4">
+                <h4 class="text-lg font-semibold text-gray-900">
+                  {chartConfigs.aiImpact.title}
+                </h4>
+                <p class="text-sm text-gray-600">
+                  Distribución del impacto de la IA por sectores
+                </p>
+              </div>
+              
+              {dataLoaded && aiImpactData.length > 0 && !errorStates.aiImpact ? (
+                <DonutChart
+                  title={chartConfigs.aiImpact.title}
+                  slices={aiImpactData.map((item, index) => {
+                    // Use design system colors for chart slices
+                    const colors = ['#C86405', '#4A7C59', '#A55204', '#3A6246'];
+                    return {
+                      label: item.label,
+                      value: item.value,
+                      color: colors[index % colors.length]
+                    };
+                  })}
+                  filterable={true}
+                  showDataTable={true}
+                  province={currentProvince}
+                  showPercentages={true}
+                  innerRadius={50}
+                />
+              ) : errorStates.aiImpact ? (
+                <!-- 
+                <ErrorBoundary
+                  chartId={chartConfigs.aiImpact.id}
+                  errorType="data"
+                  showRetry={true}
+                  fallbackContent="<p>No se pudieron cargar los datos de impacto IA. Los estudios Randstad indican un impacto medio del 15% en empleos catalanes.</p>"
+                />
+                -->
+                <div style="background: #fef2f2; color: #991b1b; padding: 1rem; border-radius: 8px;">
+                  <p>Error: No se pudieron cargar los datos de impacto IA.</p>
+                </div>
+              ) : (
+                <!-- 
+                <SkeletonLoader 
+                  type="donut"
+                  height="320px"
+                  showTitle={false}
+                  ariaLabel="Cargando datos de impacto IA por sector"
+                />
+                -->
+                <div style="height: 320px; display: flex; align-items: center; justify-content: center; background: #f9fafb; border-radius: 8px;">
+                  <p>Cargando datos de impacto IA...</p>
+                </div>
+              )}
+            </div>
+
+          </div>
+
+          <!-- Loading State for HTMX -->
+          <div id="charts-loading" class="htmx-indicator">
+            <div class="flex justify-center items-center py-12">
+              <div class="text-center">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)] mx-auto mb-2"></div>
+                <p class="text-sm text-gray-600">Actualizando gráficas...</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        </div>
+
+        <!-- Data Tables for Accessibility -->
+        <div class="sr-only" aria-label="Tablas de datos para lectores de pantalla">
+          
+          <!-- Unemployment Data Table -->
+          {dataLoaded && unemploymentData.length > 0 && (
+            <table id="unemployment-data-table" class="sr-only">
+              <caption>Datos de desempleo por provincia en Catalunya</caption>
+              <thead>
+                <tr>
+                  <th>Provincia</th>
+                  <th>Tasa de Desempleo (%)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {unemploymentData.map(item => (
+                  <tr>
+                    <td>{item.label}</td>
+                    <td>{formatters.percentage(item.value)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+
+          <!-- AI Impact Data Table -->
+          {dataLoaded && aiImpactData.length > 0 && (
+            <table id="ai-impact-data-table" class="sr-only">
+              <caption>Datos de impacto IA por sector en Catalunya</caption>
+              <thead>
+                <tr>
+                  <th>Sector</th>
+                  <th>Impacto Estimado (%)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {aiImpactData.map(item => (
+                  <tr>
+                    <td>{item.label}</td>
+                    <td>{formatters.percentage(item.value)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        <!-- Charts Footer / Additional Info -->
+        <div class="mt-12 text-center">
+          <div class="bg-blue-50 rounded-lg p-6 border border-blue-200">
+            <h4 class="text-lg font-medium text-blue-900 mb-2">
+              💡 Contexto de los datos
+            </h4>
+            <p class="text-sm text-blue-800 max-w-3xl mx-auto">
+              Los gráficos muestran datos agregados de Catalunya. Utiliza el filtro de provincias en la parte superior 
+              para explorar datos específicos de Barcelona, Girona, Lleida o Tarragona. Los datos de impacto IA son 
+              estimaciones basadas en metodologías de Randstad y pueden variar según el contexto empresarial específico.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
+
+<style>
+  /* Chart containers enhancements */
+  .chart-container {
+    transition: all 0.3s ease;
+    min-height: 400px;
+  }
+
+  .chart-container:hover {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+
+  .chart-header {
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 1rem;
+  }
+
+  /* Chart grid responsive adjustments */
+  .charts-grid > * + * {
+    margin-top: 2rem;
+  }
+
+  @media (max-width: 1024px) {
+    .charts-grid > * + * {
+      margin-top: 1.5rem;
+    }
+    
+    .chart-container {
+      min-height: 350px;
+    }
+  }
+
+  /* Loading states */
+  .chart-container[aria-busy="true"] {
+    opacity: 0.75;
+    pointer-events: none;
+  }
+
+  /* Summary grid enhancements */
+  .summary-grid .card-base {
+    transition: all 0.3s ease;
+  }
+
+  .summary-grid .card-base:hover {
+    transform: translateY(-0.25rem);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  }
+
+  /* High contrast mode */
+  @media (prefers-contrast: high) {
+    .chart-container {
+      border: 2px solid black;
+    }
+    
+    .chart-header {
+      border-bottom: 2px solid black;
+    }
+  }
+
+  /* Print styles */
+  @media print {
+    .charts-grid {
+      break-inside: avoid;
+    }
+    
+    .chart-container {
+      box-shadow: none;
+      border: 1px solid #9ca3af;
+    }
+  }
+</style>

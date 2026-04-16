@@ -1,31 +1,229 @@
 ---
+// Enhanced Bar Chart with HTMX filtering support
 interface Item {
   label: string;
   value: number;
+  province?: string; // For filtering
+  metadata?: {
+    source?: string;
+    year?: number;
+  };
 }
 
 interface Props {
   title: string;
   items: Item[];
+  filterable?: boolean; // Enable HTMX filtering
+  showDataTable?: boolean; // Accessibility data table
+  province?: string; // Current province filter
+  maxHeight?: string;
+  colorScheme?: 'primary' | 'secondary' | 'neutral';
 }
 
-const { title, items = [] } = Astro.props;
-const maxValue = Math.max(...items.map((item) => item.value), 1);
+const { 
+  title, 
+  items = [], 
+  filterable = false,
+  showDataTable = false,
+  province = 'all',
+  maxHeight = '320px',
+  colorScheme = 'primary'
+} = Astro.props;
+
+// Filter items by province if specified
+const filteredItems = province === 'all' 
+  ? items 
+  : items.filter(item => 
+      !item.province || 
+      item.province.toLowerCase() === province.toLowerCase()
+    );
+
+const maxValue = Math.max(...filteredItems.map((item) => item.value), 1);
+
+// Color schemes
+const colors = {
+  primary: 'var(--color-primary)',
+  secondary: 'var(--color-secondary)', 
+  neutral: 'var(--color-text-light)'
+};
+
+const barColor = colors[colorScheme];
+const chartId = `bar-chart-${Math.random().toString(36).substr(2, 9)}`;
 ---
 
-<section class="chart-card" aria-labelledby="bar-chart-title">
+<section 
+  class="chart-card bar-chart-container" 
+  aria-labelledby={`${chartId}-title`}
+  data-chart-type="bar"
+  data-province={province}
+  style={`max-height: ${maxHeight}`}
+>
   <div class="chart-card__header">
-    <h3 id="bar-chart-title">{title}</h3>
+    <h3 id={`${chartId}-title`} class="text-lg font-semibold text-[var(--color-text)] mb-2">
+      {title}
+    </h3>
+    {province !== 'all' && (
+      <p class="text-sm text-[var(--color-text-light)] mb-4">
+        Datos filtrados para: <strong>{province}</strong>
+      </p>
+    )}
   </div>
-  <div class="bar-chart">
-    {items.map((item) => (
-      <div class="bar-chart__row">
-        <span>{item.label}</span>
-        <div class="bar-chart__track" aria-hidden="true">
-          <div class="bar-chart__fill" style={`width: ${(item.value / maxValue) * 100}%`}></div>
+
+  {filteredItems.length > 0 ? (
+    <div class="bar-chart" role="img" aria-labelledby={`${chartId}-title`}>
+      {filteredItems.map((item, index) => {
+        const percentage = (item.value / maxValue) * 100;
+        const delay = index * 100; // Staggered animation
+        
+        return (
+          <div 
+            class="bar-chart__row group hover:bg-gray-50 transition-colors rounded-lg p-2 -m-2"
+            data-value={item.value}
+            data-label={item.label}
+          >
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-sm font-medium text-[var(--color-text)] truncate pr-2">
+                {item.label}
+              </span>
+              <strong class="text-sm font-semibold text-[var(--color-primary)] min-w-fit">
+                {item.value.toFixed(1)}%
+              </strong>
+            </div>
+            
+            <div 
+              class="bar-chart__track bg-gray-200 h-2 rounded-full overflow-hidden"
+              role="progressbar"
+              aria-valuenow={item.value}
+              aria-valuemin="0"
+              aria-valuemax={maxValue}
+              aria-label={`${item.label}: ${item.value}%`}
+            >
+              <div 
+                class="bar-chart__fill h-full rounded-full transition-all duration-700 ease-out"
+                style={{
+                  width: `${percentage}%`,
+                  backgroundColor: barColor,
+                  animationDelay: `${delay}ms`
+                }}
+              />
+            </div>
+            
+            {item.metadata && (
+              <div class="text-xs text-[var(--color-text-light)] mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                {item.metadata.source && `Fuente: ${item.metadata.source}`}
+                {item.metadata.year && ` (${item.metadata.year})`}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  ) : (
+    <div class="empty-state p-6 text-center">
+      <div class="text-gray-400 mb-2">
+        {/* Icon placeholder */}
+        <div class="w-12 h-12 mx-auto mb-2 bg-gray-200 rounded-full flex items-center justify-center">
+          📊
         </div>
-        <strong>{item.value}%</strong>
       </div>
-    ))}
-  </div>
+      <p class="text-sm text-[var(--color-text-light)]">
+        No hay datos disponibles para {province === 'all' ? 'la selección actual' : province}
+      </p>
+    </div>
+  )}
+
+  {/* Accessibility: Screen reader data table */}
+  {showDataTable && filteredItems.length > 0 && (
+    <table class="sr-only">
+      <caption>Datos tabulares de {title}</caption>
+      <thead>
+        <tr>
+          <th>Categoría</th>
+          <th>Valor (%)</th>
+          {filteredItems.some(item => item.metadata?.source) && <th>Fuente</th>}
+        </tr>
+      </thead>
+      <tbody>
+        {filteredItems.map((item) => (
+          <tr>
+            <td>{item.label}</td>
+            <td>{item.value}%</td>
+            {item.metadata?.source && <td>{item.metadata.source}</td>}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )}
+
+  {/* HTMX Loading State */}
+  {filterable && (
+    <div class="htmx-indicator absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center">
+      <div class="text-center">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-[var(--color-primary)] mx-auto mb-2"></div>
+        <p class="text-sm text-[var(--color-text-light)]">Actualizando gráfica...</p>
+      </div>
+    </div>
+  )}
 </section>
+
+<style>
+  .bar-chart-container {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bar-chart__row {
+    margin-bottom: 1rem;
+  }
+
+  .bar-chart__fill {
+    transform-origin: left;
+    animation: barGrow 0.8s ease-out forwards;
+  }
+
+  @keyframes barGrow {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  .htmx-indicator {
+    display: none;
+  }
+
+  .htmx-request .htmx-indicator {
+    display: flex;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 640px) {
+    .bar-chart__row {
+      margin-bottom: 0.75rem;
+    }
+    
+    .chart-card__header h3 {
+      font-size: 1rem;
+    }
+  }
+
+  /* Focus styles for accessibility */
+  .bar-chart__row:focus-within {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 0.5rem;
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .bar-chart__track {
+      border: 1px solid currentColor;
+    }
+    
+    .bar-chart__fill {
+      border: 1px solid transparent;
+    }
+  }
+</style>

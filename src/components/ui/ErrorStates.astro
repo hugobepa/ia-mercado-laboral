@@ -1,0 +1,330 @@
+---
+// Error States Component for HTMX Chart Filtering
+// Comprehensive error handling with accessibility and user guidance
+
+interface ErrorProps {
+  type?: 'network' | 'timeout' | 'data' | 'validation' | 'generic';
+  title?: string;
+  message?: string;
+  details?: string;
+  showRetry?: boolean;
+  retryLabel?: string;
+  showHome?: boolean;
+  showSupport?: boolean;
+  className?: string;
+  size?: 'sm' | 'md' | 'lg';
+}
+
+const { 
+  type = 'generic',
+  title,
+  message,
+  details,
+  showRetry = true,
+  retryLabel = 'Reintentar',
+  showHome = false,
+  showSupport = false,
+  className = '',
+  size = 'md'
+} = Astro.props as ErrorProps;
+
+// Error type configurations
+const errorConfigs = {
+  network: {
+    icon: '🌐',
+    defaultTitle: 'Error de conexión',
+    defaultMessage: 'No se pudo conectar con el servidor. Verifica tu conexión a internet.',
+    bgColor: 'bg-red-50',
+    borderColor: 'border-red-200',
+    iconColor: 'text-red-500',
+    textColor: 'text-red-800'
+  },
+  timeout: {
+    icon: '⏱️',
+    defaultTitle: 'Tiempo de carga agotado',
+    defaultMessage: 'Los datos tardan más de lo esperado. Intenta de nuevo en unos momentos.',
+    bgColor: 'bg-yellow-50',
+    borderColor: 'border-yellow-200',
+    iconColor: 'text-yellow-500',
+    textColor: 'text-yellow-800'
+  },
+  data: {
+    icon: '📊',
+    defaultTitle: 'Datos no disponibles',
+    defaultMessage: 'No se encontraron datos para la selección actual.',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-200',
+    iconColor: 'text-blue-500',
+    textColor: 'text-blue-800'
+  },
+  validation: {
+    icon: '⚠️',
+    defaultTitle: 'Selección no válida',
+    defaultMessage: 'Los parámetros seleccionados no son válidos.',
+    bgColor: 'bg-orange-50',
+    borderColor: 'border-orange-200',
+    iconColor: 'text-orange-500',
+    textColor: 'text-orange-800'
+  },
+  generic: {
+    icon: '❌',
+    defaultTitle: 'Se produjo un error',
+    defaultMessage: 'Algo no funcionó correctamente. Por favor, intenta de nuevo.',
+    bgColor: 'bg-gray-50',
+    borderColor: 'border-gray-200',
+    iconColor: 'text-gray-500',
+    textColor: 'text-gray-800'
+  }
+};
+
+const config = errorConfigs[type];
+
+// Size configurations
+const sizeClasses = {
+  sm: 'p-4 text-sm',
+  md: 'p-6 text-base',
+  lg: 'p-8 text-lg'
+};
+
+const iconSizes = {
+  sm: 'text-2xl',
+  md: 'text-3xl',
+  lg: 'text-4xl'
+};
+
+const finalTitle = title || config.defaultTitle;
+const finalMessage = message || config.defaultMessage;
+---
+
+<div 
+  class={`error-state ${config.bgColor} ${config.borderColor} border rounded-lg ${sizeClasses[size]} ${className}`}
+  role="alert"
+  aria-labelledby="error-title"
+  aria-describedby="error-message"
+>
+  <div class="text-center">
+    <!-- Error Icon -->
+    <div class={`${config.iconColor} ${iconSizes[size]} mb-4`} aria-hidden="true">
+      {config.icon}
+    </div>
+
+    <!-- Error Content -->
+    <div class="space-y-3">
+      <h3 id="error-title" class={`font-semibold ${config.textColor}`}>
+        {finalTitle}
+      </h3>
+
+      <p id="error-message" class={`${config.textColor} opacity-80`}>
+        {finalMessage}
+      </p>
+
+      {details && (
+        <details class="text-left">
+          <summary class={`cursor-pointer ${config.textColor} text-sm hover:underline focus:outline-none focus:underline`}>
+            Detalles técnicos
+          </summary>
+          <div class="mt-2 p-3 bg-white border border-gray-200 rounded text-xs font-mono text-gray-600 overflow-auto">
+            {details}
+          </div>
+        </details>
+      )}
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex flex-col sm:flex-row gap-3 mt-6 justify-center">
+      {showRetry && (
+        <button
+          onclick="handleErrorRetry()"
+          class={`
+            px-4 py-2 rounded font-medium transition-colors
+            ${type === 'network' ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500' :
+              type === 'timeout' ? 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500' :
+              type === 'data' ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500' :
+              type === 'validation' ? 'bg-orange-600 hover:bg-orange-700 focus:ring-orange-500' :
+              'bg-gray-600 hover:bg-gray-700 focus:ring-gray-500'
+            }
+            text-white focus:outline-none focus:ring-2 focus:ring-offset-2
+          `}
+          aria-describedby="retry-help"
+        >
+          {retryLabel}
+        </button>
+      )}
+
+      {showHome && (
+        <a
+          href="/"
+          class="px-4 py-2 border border-gray-300 rounded font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+        >
+          Ir al inicio
+        </a>
+      )}
+
+      {showSupport && (
+        <button
+          onclick="showSupportOptions()"
+          class="px-4 py-2 border border-gray-300 rounded font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+        >
+          Obtener ayuda
+        </button>
+      )}
+    </div>
+
+    <!-- Helpful Tips -->
+    {type === 'network' && (
+      <div class="mt-4 p-3 bg-white border border-gray-200 rounded text-left">
+        <h4 class="text-sm font-medium text-gray-800 mb-2">Posibles soluciones:</h4>
+        <ul class="text-xs text-gray-600 space-y-1">
+          <li>• Verifica tu conexión a internet</li>
+          <li>• Recarga la página (F5 o Ctrl+R)</li>
+          <li>• Intenta de nuevo en unos minutos</li>
+        </ul>
+      </div>
+    )}
+
+    {type === 'timeout' && (
+      <div class="mt-4 p-3 bg-white border border-gray-200 rounded text-left">
+        <h4 class="text-sm font-medium text-gray-800 mb-2">Sugerencias:</h4>
+        <ul class="text-xs text-gray-600 space-y-1">
+          <li>• Espera unos segundos e intenta de nuevo</li>
+          <li>• Verifica tu conexión a internet</li>
+          <li>• Selecciona menos filtros para reducir la carga</li>
+        </ul>
+      </div>
+    )}
+  </div>
+
+  <!-- Hidden help text for screen readers -->
+  <div id="retry-help" class="sr-only">
+    Presiona Enter o Espacio para reintentar la operación
+  </div>
+</div>
+
+<style>
+  .error-state {
+    animation: slideInDown 0.3s ease-out;
+  }
+
+  @keyframes slideInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    .error-state {
+      animation: none;
+    }
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .error-state {
+      border-width: 2px;
+    }
+    
+    .error-state button,
+    .error-state a {
+      border-width: 2px;
+    }
+  }
+
+  /* Focus management */
+  .error-state button:focus,
+  .error-state a:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+</style>
+
+<script>
+  // Error handling functions
+  function handleErrorRetry() {
+    // Announce retry to screen readers
+    announceToScreenReader('Reintentando cargar los datos...');
+    
+    // Reload the page or re-trigger HTMX request
+    // Modern browsers support this directly
+    window.location.reload();
+  }
+
+  function showSupportOptions() {
+    // Show support modal or redirect to help
+    const supportModal = document.getElementById('support-modal');
+    
+    if (supportModal) {
+      supportModal.style.display = 'block';
+    } else {
+      // Create simple support info
+      alert(`
+        Para obtener ayuda:
+        
+        1. Recarga la página (F5)
+        2. Verifica tu conexión
+        3. Intenta de nuevo más tarde
+        
+        Si el problema persiste, contacta al administrador.
+      `);
+    }
+  }
+
+  function announceToScreenReader(message: string) {
+    const announcer = document.getElementById('error-announcer') || document.createElement('div');
+    announcer.id = 'error-announcer';
+    announcer.setAttribute('aria-live', 'assertive');
+    announcer.setAttribute('aria-atomic', 'true');
+    announcer.className = 'sr-only';
+    
+    if (!announcer.parentNode) {
+      document.body.appendChild(announcer);
+    }
+    
+    announcer.textContent = message;
+    
+    // Clear after announcement
+    setTimeout(() => {
+      if (announcer.textContent === message) {
+        announcer.textContent = '';
+      }
+    }, 3000);
+  }
+
+  // Auto-focus retry button for keyboard users
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      const retryButton = document.querySelector('.error-state button') as HTMLButtonElement;
+      if (retryButton && (!document.activeElement || document.activeElement === document.body)) {
+        retryButton.focus();
+      }
+    }, 300);
+  });
+
+  // Keyboard shortcuts for error states
+  document.addEventListener('keydown', (event) => {
+    const errorState = document.querySelector('.error-state');
+    if (!errorState) return;
+    
+    // Press 'r' to retry
+    if (event.key.toLowerCase() === 'r' && !event.ctrlKey && !event.altKey) {
+      const retryButton = errorState.querySelector('button') as HTMLButtonElement;
+      if (retryButton) {
+        event.preventDefault();
+        retryButton.click();
+      }
+    }
+    
+    // Press 'h' to go home
+    if (event.key.toLowerCase() === 'h' && !event.ctrlKey && !event.altKey) {
+      const homeLink = errorState.querySelector('a[href="/"]') as HTMLAnchorElement;
+      if (homeLink) {
+        event.preventDefault();
+        homeLink.click();
+      }
+    }
+  });
+</script>

@@ -1,0 +1,183 @@
+---
+// src/components/ui/ProvinceFilter.astro
+// Province dropdown filter component for dynamic chart updates
+
+interface Props {
+  currentProvince?: string;
+  provinces: Array<{
+    id: string;
+    name: string;
+    region: string;
+  }>;
+  targetElementId?: string; // ID of the element to update via HTMX
+}
+
+const { 
+  currentProvince = "all", 
+  provinces = [], 
+  targetElementId = "chart-container" 
+} = Astro.props as Props;
+
+// Add "Todas las provincias" option at the beginning
+const allProvinces = [
+  { id: "all", name: "Todas las provincias", region: "España" },
+  ...provinces
+];
+---
+
+<div class="province-filter">
+  <label 
+    for="province-select" 
+    class="block text-sm font-medium text-[var(--color-text)] mb-2"
+  >
+    Filtrar por provincia:
+  </label>
+  
+  <select
+    id="province-select"
+    name="province"
+    class="
+      block w-full max-w-xs px-3 py-2 
+      bg-white border border-gray-300 rounded-md shadow-sm
+      text-[var(--color-text)] font-medium
+      focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]
+      hover:border-[var(--color-primary-hover)]
+      transition-colors duration-200
+    "
+    hx-get={`/api/filter-charts?province={value}`}
+    hx-target={`#${targetElementId}`}
+    hx-swap="innerHTML"
+    hx-indicator="#loading-indicator"
+    hx-trigger="change"
+    aria-describedby="province-description"
+  >
+    {allProvinces.map((province) => (
+      <option 
+        value={province.id}
+        selected={currentProvince === province.id}
+      >
+        {province.name}
+        {province.region !== "España" && ` (${province.region})`}
+      </option>
+    ))}
+  </select>
+
+  <p id="province-description" class="mt-1 text-xs text-[var(--color-text-light)]">
+    Selecciona una provincia para filtrar los datos del mercado laboral
+  </p>
+
+  <!-- Loading indicator for HTMX requests -->
+  <div 
+    id="loading-indicator" 
+    class="htmx-indicator mt-2"
+    role="status" 
+    aria-live="polite"
+    aria-label="Cargando datos filtrados"
+  >
+    <div class="flex items-center space-x-2">
+      <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--color-primary)]"></div>
+      <span class="text-sm text-[var(--color-text-light)]">Actualizando gráficas...</span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .htmx-indicator {
+    display: none;
+  }
+  
+  .htmx-request .htmx-indicator {
+    display: flex;
+  }
+
+  /* Enhanced focus styles for better accessibility */
+  #province-select:focus {
+    box-shadow: 0 0 0 3px rgba(200, 100, 5, 0.1);
+  }
+
+  /* Mobile-first responsive adjustments */
+  @media (max-width: 640px) {
+    .province-filter {
+      margin-bottom: 1rem;
+    }
+    
+    #province-select {
+      max-width: 100%;
+      font-size: 16px; /* Prevent iOS zoom */
+    }
+  }
+</style>
+
+<script>
+  // Enhanced keyboard navigation and accessibility
+  document.addEventListener('DOMContentLoaded', () => {
+    const provinceSelect = document.getElementById('province-select') as HTMLSelectElement;
+    
+    if (provinceSelect) {
+      // Add keyboard shortcuts
+      provinceSelect.addEventListener('keydown', (event) => {
+        // Allow arrow keys, enter, space, tab, and escape
+        const allowedKeys = ['ArrowUp', 'ArrowDown', 'Enter', ' ', 'Tab', 'Escape'];
+        if (!allowedKeys.includes(event.key) && event.key.length === 1) {
+          // If it's a letter, find matching province
+          const letter = event.key.toLowerCase();
+          const options = Array.from(provinceSelect.options);
+          const currentIndex = provinceSelect.selectedIndex;
+          
+          // Find next province starting with this letter
+          let foundIndex = -1;
+          for (let i = currentIndex + 1; i < options.length; i++) {
+            if (options[i].textContent?.toLowerCase().startsWith(letter)) {
+              foundIndex = i;
+              break;
+            }
+          }
+          
+          // If not found, search from beginning
+          if (foundIndex === -1) {
+            for (let i = 0; i < currentIndex; i++) {
+              if (options[i].textContent?.toLowerCase().startsWith(letter)) {
+                foundIndex = i;
+                break;
+              }
+            }
+          }
+          
+          if (foundIndex !== -1) {
+            provinceSelect.selectedIndex = foundIndex;
+            event.preventDefault();
+          }
+        }
+      });
+
+      // Handle selection change with better UX feedback
+      provinceSelect.addEventListener('change', (event) => {
+        const selectedOption = (event.target as HTMLSelectElement).selectedOptions[0];
+        
+        // Update URL without page reload for better UX
+        if (window.history.pushState) {
+          const url = new URL(window.location.href);
+          if (selectedOption.value === 'all') {
+            url.searchParams.delete('province');
+          } else {
+            url.searchParams.set('province', selectedOption.value);
+          }
+          window.history.pushState({}, '', url.toString());
+        }
+
+        // Announce selection to screen readers
+        const announcement = `Filtrando datos para: ${selectedOption.textContent}`;
+        const announcer = document.createElement('div');
+        announcer.setAttribute('aria-live', 'assertive');
+        announcer.setAttribute('aria-atomic', 'true');
+        announcer.className = 'sr-only';
+        announcer.textContent = announcement;
+        document.body.appendChild(announcer);
+        
+        setTimeout(() => {
+          document.body.removeChild(announcer);
+        }, 1000);
+      });
+    }
+  });
+</script>
