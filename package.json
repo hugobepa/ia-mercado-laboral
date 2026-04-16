@@ -1,4 +1,8 @@
 {
+  "name": "ia-mercado-laboral",
+  "version": "1.0.0",
+  "description": "ejercicio hecho con speckit, skill en astro V6 y con tailwind V4",
+  "license": "MIT",
   "dependencies": {
     "@astrojs/db": "^0.20.1",
     "@astrojs/node": "^10.0.4",

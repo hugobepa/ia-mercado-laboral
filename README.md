@@ -4,6 +4,8 @@ Landing web en Astro para visualizar impacto de IA en mercado laboral con datos 
 Incluye vistas separadas de Inicio, Datos, Graficos, Fuentes y Provincias, con enfoque mobile-first y accesibilidad.
 Usa render server/local con Bun y compilacion Astro para despliegue en entornos locales o GitHub Pages.
 
+Ejercicio hecho con speckit, skill en Astro V6 y con Tailwind V4.
+
 ## Instalacion
 
 ### Requisitos
