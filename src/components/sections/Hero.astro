@@ -1,21 +1,53 @@
 ---
-import Button from '../ui/Button.astro';
+import randstadData from "../../data/randstad-catalunya.json";
+import { SECTION_IDS, normalizeBasePath, resolveInternalHref } from "../../utils/navigation-path";
+import Button from "../ui/Button.astro";
+
+interface Props {
+  title?: string;
+  subtitle?: string;
+  ctaLabel?: string;
+}
+
+const {
+  title = randstadData.resumen_ejecutivo.titulo,
+  subtitle = randstadData.resumen_ejecutivo.subtitulo,
+  ctaLabel = "Ver datos clave",
+} = Astro.props as Props;
+
+const basePath = normalizeBasePath(import.meta.env.BASE_URL);
+const ctaHref = resolveInternalHref("/datos/#datos", basePath);
+const updateYear = randstadData.resumen_ejecutivo.fecha_actualizacion;
 ---
 
-<section id="hero" class="hero">
-  <div class="hero__copy">
-    <p class="eyebrow">Estudio 2026</p>
-    <h1>IA y mercado laboral en Catalunya</h1>
-    <p class="hero__lead">
-      Base inicial para presentar indicadores, comparativas territoriales y graficos sobre adopcion,
-      transformacion del empleo y brecha de capacidades.
-    </p>
-    <div class="hero__actions">
-      <Button href="#datos">Ver resumen</Button>
-      <Button href="#graficos" variant="secondary">Ir a graficos</Button>
+<section id={SECTION_IDS.inicio} class="section-landmark page-shell pt-6 sm:pt-10" aria-labelledby="hero-title">
+  <div class="surface-card grid grid-cols-1 gap-6 p-5 sm:p-6 lg:grid-cols-[1.2fr_1fr] lg:gap-8 lg:p-8">
+    <div class="space-y-4">
+      <p class="metric-label">Landing IA y Mercado Laboral</p>
+      <h1 id="hero-title" class="section-heading max-w-2xl text-3xl sm:text-4xl lg:text-5xl">{title}</h1>
+      <p class="section-copy max-w-xl text-sm sm:text-base">{subtitle}</p>
+
+      <div class="flex flex-wrap gap-3 pt-2">
+        <Button href={ctaHref} ariaLabel="Ir a la seccion de datos clave">{ctaLabel}</Button>
+      </div>
+
+      <p class="text-xs text-[var(--color-text-light)]">
+        Fuentes: {randstadData.resumen_ejecutivo.fuente_principal} · Actualizado {updateYear}
+      </p>
     </div>
-  </div>
-  <div class="hero__panel">
-    <p>La estructura ya queda preparada para conectar datos reales y ampliar secciones sin rehacer la base.</p>
+
+    <aside class="rounded-t-xl rounded-b-lg border border-[var(--color-neutral-dark)] bg-[var(--color-neutral-dark)] p-4 sm:p-5" aria-label="Resumen rapido">
+      <h2 class="text-base font-bold text-[var(--color-text)]">Resumen rapido</h2>
+      <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div class="rounded-t-xl rounded-b-lg bg-[var(--color-neutral)] p-3">
+          <p class="metric-label">Riesgo automatizacion</p>
+          <p class="metric-value">{randstadData.cifras_clave_catalunya_2033.porcentaje_riesgo}%</p>
+        </div>
+        <div class="rounded-t-xl rounded-b-lg bg-[var(--color-neutral)] p-3">
+          <p class="metric-label">Mejora productividad</p>
+          <p class="metric-value">{randstadData.cifras_clave_catalunya_2033.porcentaje_mejora}%</p>
+        </div>
+      </div>
+    </aside>
   </div>
 </section>

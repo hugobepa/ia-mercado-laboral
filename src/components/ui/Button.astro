@@ -1,35 +1,65 @@
 ---
 interface ButtonProps {
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: "primary" | "secondary" | "outline";
+  size?: "sm" | "md" | "lg";
   href?: string;
   class?: string;
-  type?: 'button' | 'submit' | 'reset';
+  type?: "button" | "submit" | "reset";
+  disabled?: boolean;
+  ariaLabel?: string;
 }
 
-const { 
-  variant = 'primary', 
-  href, 
+const {
+  variant = "primary",
+  size = "md",
+  href,
   class: className = '',
-  type = 'button'
+  type = "button",
+  disabled = false,
+  ariaLabel,
 }: ButtonProps = Astro.props;
 
-const baseClasses = 'inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
+const baseClasses =
+  "focus-ring touch-target inline-flex items-center justify-center rounded-t-xl rounded-b-lg font-medium transition-all duration-200";
 
-const variantClasses = {
-  primary: 'bg-primary text-white hover:bg-primary-hover focus:ring-primary',
-  secondary: 'bg-secondary text-white hover:bg-secondary-hover focus:ring-secondary',
-  outline: 'border-2 border-primary text-primary hover:bg-primary hover:text-white focus:ring-primary'
+const sizeClasses = {
+  sm: "px-3 py-2 text-sm",
+  md: "px-4 py-2 text-sm sm:text-base",
+  lg: "px-5 py-3 text-base",
 };
 
-const classes = `${baseClasses} ${variantClasses[variant] ?? ''} ${className}`;
+const variantClasses = {
+  primary:
+    "bg-[var(--color-primary)] text-[var(--color-neutral)] hover:bg-[var(--color-primary-hover)] shadow-sm hover:shadow-md",
+  secondary:
+    "bg-[var(--color-secondary)] text-[var(--color-neutral)] hover:bg-[var(--color-secondary-hover)] shadow-sm hover:shadow-md",
+  outline:
+    "border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-[var(--color-neutral)] shadow-sm hover:shadow-md",
+};
+
+const disabledClasses = disabled
+  ? "cursor-not-allowed opacity-60 hover:shadow-sm"
+  : "cursor-pointer";
+
+const classes = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${disabledClasses} ${className}`;
 ---
 
 {href ? (
-  <a href={href} class={classes}>
+  <a
+    href={disabled ? undefined : href}
+    class={classes}
+    aria-label={ariaLabel}
+    aria-disabled={disabled ? "true" : undefined}
+  >
     <slot />
   </a>
 ) : (
-  <button type={type} class={classes}>
+  <button
+    type={type}
+    class={classes}
+    aria-label={ariaLabel}
+    disabled={disabled}
+  >
     <slot />
   </button>
 )}

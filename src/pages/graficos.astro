@@ -1,0 +1,17 @@
+---
+import ChartsSection from "../components/sections/ChartsSection.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const pageTitle = "Graficos | IA y Mercado Laboral";
+const pageDescription = "Visualizaciones de impacto de IA en el mercado laboral.";
+---
+
+<BaseLayout title={pageTitle} description={pageDescription}>
+  <ChartsSection />
+
+  <Fragment slot="footer">
+    <p class="text-sm text-[var(--color-text-light)]">
+      Graficos de contexto del estudio IA y Mercado Laboral.
+    </p>
+  </Fragment>
+</BaseLayout>

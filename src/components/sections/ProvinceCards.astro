@@ -1,0 +1,81 @@
+---
+import idescatData from "../../data/idescat-provincias.json";
+import {
+formatNumberOrFallback,
+formatPercentOrFallback,
+formatTextOrFallback,
+} from "../../utils/formatters";
+import { SECTION_IDS } from "../../utils/navigation-path";
+import Card from "../ui/Card.astro";
+
+const PROVINCE_ORDER = ["Barcelona", "Girona", "Lleida", "Tarragona"];
+const provinces = Array.isArray(idescatData?.provincias) ? idescatData.provincias : [];
+
+const provinceCards = PROVINCE_ORDER.map((provinceName) => {
+  const province = provinces.find((item) => item?.nombre === provinceName);
+  if (!province) {
+    return {
+      nombre: provinceName,
+      placeholder: true,
+      ocupados: "Datos no disponibles",
+      adopcionIA: "Datos no disponibles",
+      riesgo: "Datos no disponibles",
+      ejemplo: "Datos no disponibles",
+    };
+  }
+
+  return {
+    nombre: provinceName,
+    placeholder: false,
+    ocupados: formatNumberOrFallback(province.ocupados_2023),
+    adopcionIA: formatPercentOrFallback(province.adopcionIA),
+    riesgo: formatPercentOrFallback(province.riesgo_automatizacion_pct),
+    ejemplo: formatTextOrFallback(province.ejemplo_cotidiano),
+  };
+});
+---
+
+<section
+  id={SECTION_IDS.provincias}
+  class="section-landmark page-shell space-y-5 py-8"
+  aria-labelledby="provincias-title"
+>
+  <header class="space-y-2">
+    <p class="metric-label">Provincias clave</p>
+    <h2 id="provincias-title" class="section-heading">Impacto por provincia</h2>
+    <p class="section-copy max-w-3xl text-sm sm:text-base">
+      Orden fijo: Barcelona, Girona, Lleida y Tarragona. Cuando falte informacion,
+      mantenemos la tarjeta con estado "Datos no disponibles" para conservar lectura comparativa.
+    </p>
+  </header>
+
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {provinceCards.map((province) => (
+      <Card
+        variant="province"
+        title={province.nombre}
+        subtitle={`Adopcion IA: ${province.adopcionIA}`}
+        eyebrow="Provincia"
+      >
+        <dl class="space-y-2 text-sm">
+          <div class="flex items-center justify-between gap-2">
+            <dt class="font-medium text-[var(--color-text-light)]">Ocupados 2023</dt>
+            <dd class="text-[var(--color-text)]">{province.ocupados}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-2">
+            <dt class="font-medium text-[var(--color-text-light)]">Riesgo automatizacion</dt>
+            <dd class="text-[var(--color-text)]">{province.riesgo}</dd>
+          </div>
+        </dl>
+
+        <p class="mt-3 text-sm text-[var(--color-text)]">{province.ejemplo}</p>
+
+        {province.placeholder && (
+          <p class="mt-3 rounded-t-xl rounded-b-lg border border-[var(--color-neutral-dark)] bg-[var(--color-neutral-dark)] px-3 py-2 text-xs font-semibold uppercase tracking-wide text-[var(--color-text-light)]">
+            Datos no disponibles
+          </p>
+        )}
+      </Card>
+    ))}
+  </div>
+</section>

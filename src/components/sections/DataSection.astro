@@ -1,39 +1,68 @@
 ---
-import BarChart from '../charts/BarChart.astro';
-import DonutChart from '../charts/DonutChart.astro';
-import Card from '../ui/Card.astro';
+import randstadData from "../../data/randstad-catalunya.json";
+import {
+formatNumberOrFallback,
+formatPercentOrFallback,
+} from "../../utils/formatters";
+import { SECTION_IDS } from "../../utils/navigation-path";
+import Card from "../ui/Card.astro";
 
-interface SummaryItem {
-  title: string;
-  eyebrow: string;
-  description: string;
-}
+const currentPath = Astro.url.pathname;
 
-interface Props {
-  summary: SummaryItem[];
-  barItems: { label: string; value: number }[];
-  donutItems: { label: string; value: number; color: string }[];
-}
+const randstadKpi = randstadData?.cifras_clave_catalunya_2033;
+const exposicion = randstadData?.exposicion_ia_catalunya_2024;
 
-const { summary = [], barItems = [], donutItems = [] } = Astro.props;
+const hasRandstad = Boolean(randstadKpi);
+const hasExposicion = Boolean(exposicion);
 ---
 
-<section id="datos" class="data-section">
-  <div class="section-heading">
-    <p class="eyebrow">Panorama</p>
-    <h2>Lectura rapida del estudio</h2>
-  </div>
+<section id={SECTION_IDS.datos} class="section-landmark page-shell space-y-6 py-8" aria-labelledby="datos-title">
+  <header class="space-y-2">
+    <p class="metric-label">Datos clave Randstad + Idescat</p>
+    <h2 id="datos-title" class="section-heading">Resumen laboral</h2>
+    <p class="section-copy max-w-3xl text-sm sm:text-base">
+      Esta seccion muestra indicadores clave de mercado laboral sin bloques territoriales ni visualizaciones.
+    </p>
+  </header>
 
-  <div class="summary-grid">
-    {summary.map((item) => (
-      <Card title={item.title} eyebrow={item.eyebrow}>
-        <p>{item.description}</p>
-      </Card>
-    ))}
-  </div>
+  {hasRandstad ? (
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <Card variant="data" title={formatNumberOrFallback(randstadKpi.ocupados_actuales_2023)} subtitle="Ocupados en Catalunya" eyebrow="Mercado laboral" />
+      <Card variant="data" title={formatPercentOrFallback(randstadKpi.porcentaje_riesgo)} subtitle="Empleo en riesgo" eyebrow="Impacto IA" />
+      <Card variant="data" title={formatNumberOrFallback(randstadKpi.nuevos_empleos_creados)} subtitle="Nuevos empleos estimados" eyebrow="Proyeccion" />
+    </div>
+  ) : (
+    <Card
+      variant="demographic"
+      title="No hay datos de Randstad disponibles"
+      eyebrow="Estado de datos"
+      empty={true}
+      emptyMessage="No pudimos cargar cifras clave en este momento. El resto de la landing sigue disponible."
+      emptyCtaLabel="Reintentar"
+      emptyCtaHref={currentPath}
+    />
+  )}
 
-  <div id="graficos" class="chart-grid">
-    <BarChart title="Impacto estimado por ambito" items={barItems} />
-    <DonutChart title="Distribucion de niveles de adopcion" slices={donutItems} />
-  </div>
+  {hasExposicion && (
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <Card
+        variant="demographic"
+        title={formatPercentOrFallback(exposicion.fuerza_laboral_expuesta_pct)}
+        subtitle="Fuerza laboral expuesta"
+        eyebrow="Otros datos"
+      />
+      <Card
+        variant="demographic"
+        title={formatPercentOrFallback(exposicion.empresas_con_ia_pct)}
+        subtitle="Empresas con IA"
+        eyebrow="Otros datos"
+      />
+      <Card
+        variant="demographic"
+        title={formatPercentOrFallback(exposicion.transformacion_5_anios_pct)}
+        subtitle="Transformacion prevista (5 anos)"
+        eyebrow="Otros datos"
+      />
+    </div>
+  )}
 </section>

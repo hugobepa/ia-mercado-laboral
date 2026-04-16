@@ -1,31 +1,61 @@
 ---
-interface Item {
-  label: string;
-  value: number;
-}
+import chartsConfig from "../../data/charts-config.json";
+import { buildBarOptions, getRouteSafeCtaHref } from "../../utils/chart-helpers.js";
 
 interface Props {
-  title: string;
-  items: Item[];
+  title?: string;
+  ariaLabel?: string;
+  config?: typeof chartsConfig.barChart;
+  currentPath?: string;
+  ctaLabel?: string;
 }
 
-const { title, items = [] } = Astro.props;
-const maxValue = Math.max(...items.map((item) => item.value), 1);
+const {
+  title = "Empleo en riesgo por sector",
+  ariaLabel = "Grafica de barras de empleo en riesgo por sector",
+  config = chartsConfig.barChart,
+  currentPath = Astro.url.pathname,
+  ctaLabel = "Volver a filtros",
+} = Astro.props as Props;
+
+const chartId = `bar-chart-${Math.random().toString(36).slice(2, 9)}`;
+const safeHref = getRouteSafeCtaHref(currentPath, "datos");
+const options = buildBarOptions(config, title, ariaLabel);
+const serialized = options ? JSON.stringify(options) : "";
 ---
 
-<section class="chart-card" aria-labelledby="bar-chart-title">
-  <div class="chart-card__header">
-    <h3 id="bar-chart-title">{title}</h3>
-  </div>
-  <div class="bar-chart">
-    {items.map((item) => (
-      <div class="bar-chart__row">
-        <span>{item.label}</span>
-        <div class="bar-chart__track" aria-hidden="true">
-          <div class="bar-chart__fill" style={`width: ${(item.value / maxValue) * 100}%`}></div>
-        </div>
-        <strong>{item.value}%</strong>
+<section class="surface-card p-4" aria-label={ariaLabel}>
+  {options ? (
+    <div
+      id={chartId}
+      data-chart-id={chartId}
+      data-chart-type="apex"
+      data-chart-lazy="true"
+      data-apex-config={serialized}
+      class="chart-host"
+      role="img"
+      aria-label={ariaLabel}
+    />
+  ) : (
+    <div class="rounded-lg border border-[var(--color-neutral-dark)] bg-white p-4" aria-live="polite">
+      <p class="text-sm font-medium text-[var(--color-text)]">No se pudo cargar la grafica de barras.</p>
+      <p class="mt-1 text-sm text-[var(--color-text-light)]">Configura datos validos o vuelve a filtros.</p>
+      <div class="mt-3 flex gap-2">
+        <a class="focus-ring rounded bg-[var(--color-primary)] px-3 py-2 text-sm text-white" href={safeHref}>{ctaLabel}</a>
+        <a class="focus-ring rounded border border-[var(--color-neutral-dark)] px-3 py-2 text-sm" href={currentPath}>Recargar</a>
       </div>
-    ))}
-  </div>
+    </div>
+  )}
 </section>
+
+<style>
+  .chart-host {
+    min-height: 300px;
+  }
+
+  @media (min-width: 768px) {
+    .chart-host {
+      min-height: 350px;
+    }
+  }
+</style>

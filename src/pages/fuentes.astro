@@ -1,0 +1,17 @@
+---
+import FuentesSection from "../components/sections/FuentesSection.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const pageTitle = "Fuentes y Referencias | IA y Mercado Laboral";
+const pageDescription = "Referencias del estudio IA y Mercado Laboral.";
+---
+
+<BaseLayout title={pageTitle} description={pageDescription}>
+	<FuentesSection />
+
+	<Fragment slot="footer">
+		<p class="text-sm text-[var(--color-text-light)]">
+			Fuentes y referencias oficiales del estudio.
+		</p>
+	</Fragment>
+</BaseLayout>

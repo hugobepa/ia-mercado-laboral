@@ -1,44 +1,61 @@
 ---
-interface Slice {
-  label: string;
-  value: number;
-  color: string;
-}
+import chartsConfig from "../../data/charts-config.json";
+import { buildDonutOptions, getRouteSafeCtaHref } from "../../utils/chart-helpers.js";
 
 interface Props {
-  title: string;
-  slices: Slice[];
+  title?: string;
+  ariaLabel?: string;
+  config?: typeof chartsConfig.donutChart;
+  currentPath?: string;
+  ctaLabel?: string;
 }
 
-const { title, slices = [] } = Astro.props;
-const total = slices.reduce((sum, slice) => sum + slice.value, 0) || 1;
-const gradient = slices
-  .map((slice, index) => {
-    const start = slices.slice(0, index).reduce((sum, current) => sum + current.value, 0);
-    const end = start + slice.value;
-    const startPct = (start / total) * 100;
-    const endPct = (end / total) * 100;
-    return `${slice.color} ${startPct}% ${endPct}%`;
-  })
-  .join(', ');
+const {
+  title = "Distribucion del impacto IA",
+  ariaLabel = "Grafica donut de distribucion del impacto IA",
+  config = chartsConfig.donutChart,
+  currentPath = Astro.url.pathname,
+  ctaLabel = "Volver a filtros",
+} = Astro.props as Props;
+
+const chartId = `donut-chart-${Math.random().toString(36).slice(2, 9)}`;
+const safeHref = getRouteSafeCtaHref(currentPath, "datos");
+const options = buildDonutOptions(config, title, ariaLabel);
+const serialized = options ? JSON.stringify(options) : "";
 ---
 
-<section class="chart-card" aria-labelledby="donut-chart-title">
-  <div class="chart-card__header">
-    <h3 id="donut-chart-title">{title}</h3>
-  </div>
-  <div class="donut-chart">
-    <div class="donut-chart__visual" style={`background: conic-gradient(${gradient});`}>
-      <div class="donut-chart__inner">{total}%</div>
+<section class="surface-card p-4" aria-label={ariaLabel}>
+  {options ? (
+    <div
+      id={chartId}
+      data-chart-id={chartId}
+      data-chart-type="apex"
+      data-chart-lazy="true"
+      data-apex-config={serialized}
+      class="chart-host"
+      role="img"
+      aria-label={ariaLabel}
+    />
+  ) : (
+    <div class="rounded-lg border border-[var(--color-neutral-dark)] bg-white p-4" aria-live="polite">
+      <p class="text-sm font-medium text-[var(--color-text)]">No se pudo cargar la grafica donut.</p>
+      <p class="mt-1 text-sm text-[var(--color-text-light)]">Configura datos validos o vuelve a filtros.</p>
+      <div class="mt-3 flex gap-2">
+        <a class="focus-ring rounded bg-[var(--color-primary)] px-3 py-2 text-sm text-white" href={safeHref}>{ctaLabel}</a>
+        <a class="focus-ring rounded border border-[var(--color-neutral-dark)] px-3 py-2 text-sm" href={currentPath}>Recargar</a>
+      </div>
     </div>
-    <ul class="donut-chart__legend">
-      {slices.map((slice) => (
-        <li>
-          <span class="donut-chart__swatch" style={`background:${slice.color};`}></span>
-          <span>{slice.label}</span>
-          <strong>{slice.value}%</strong>
-        </li>
-      ))}
-    </ul>
-  </div>
+  )}
 </section>
+
+<style>
+  .chart-host {
+    min-height: 300px;
+  }
+
+  @media (min-width: 768px) {
+    .chart-host {
+      min-height: 350px;
+    }
+  }
+</style>

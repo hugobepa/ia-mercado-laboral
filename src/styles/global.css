@@ -1,8 +1,19 @@
 @import "tailwindcss";
-/* Importación de fuentes Google */
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@600;700&family=Inter:wght@400;500&display=swap");
 
-/* Variables globales */
+@theme {
+  --color-primary: #c86405;
+  --color-primary-hover: #a55204;
+  --color-secondary: #4a7c59;
+  --color-secondary-hover: #3a6246;
+  --color-neutral: #f5f1e6;
+  --color-neutral-dark: #e8e1d1;
+  --color-text: #2c2c2c;
+  --color-text-light: #5a5a5a;
+
+  --font-heading: "Manrope", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+
 :root {
   --color-primary: #c86405;
   --color-primary-hover: #a55204;
@@ -17,22 +28,23 @@
   --font-body: "Inter", sans-serif;
 }
 
-/* Reset básico */
-*,
-*::before,
-*::after {
+* {
   box-sizing: border-box;
+}
+
+html,
+body {
   margin: 0;
   padding: 0;
 }
 
 body {
-  font-family: var(--font-body);
+  min-height: 100vh;
+  background: var(--color-neutral);
   color: var(--color-text);
-  background-color: var(--color-neutral);
+  font-family: var(--font-body);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 h1,
@@ -42,21 +54,79 @@ h4,
 h5,
 h6 {
   font-family: var(--font-heading);
-  font-weight: 700;
-  line-height: 1.2;
+  color: var(--color-text);
 }
 
-/* Tipografía responsive */
 h1 {
   font-size: clamp(1.75rem, 5vw, 2.5rem);
 }
+
 h2 {
   font-size: clamp(1.5rem, 4vw, 2rem);
 }
+
 h3 {
   font-size: clamp(1.25rem, 3vw, 1.5rem);
 }
 
-card-base {
-  @apply bg-neutral rounded-t-xl rounded-b-lg p-4 shadow-sm border border-neutral-dark/50;
+a,
+button,
+select,
+input,
+textarea {
+  font-family: inherit;
+}
+
+.focus-ring {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-neutral)];
+}
+
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.surface-card {
+  @apply rounded-t-xl rounded-b-lg border border-[var(--color-neutral-dark)] bg-[var(--color-neutral)] shadow-sm transition-shadow duration-200 hover:shadow-md;
+}
+
+.page-shell {
+  @apply mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12;
+}
+
+.skip-link {
+  @apply absolute left-3 top-3 z-[100] -translate-y-20 rounded-lg bg-[var(--color-text)] px-4 py-2 text-sm font-medium text-[var(--color-neutral)] transition-transform duration-200 focus-visible:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-neutral)];
+}
+
+.htmx-indicator {
+  display: none;
+}
+
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+  display: inline-flex;
+}
+
+.section-landmark {
+  @apply scroll-mt-24;
+}
+
+.section-heading {
+  @apply text-balance font-bold text-[var(--color-text)];
+}
+
+.section-copy {
+  @apply text-[var(--color-text-light)];
+}
+
+.metric-value {
+  @apply text-2xl font-bold text-[var(--color-text)];
+}
+
+.metric-label {
+  @apply text-xs font-semibold uppercase tracking-wide text-[var(--color-text-light)];
+}
+
+.status-unavailable {
+  @apply inline-flex items-center rounded-t-xl rounded-b-lg border border-[var(--color-neutral-dark)] bg-[var(--color-neutral-dark)] px-2 py-1 text-xs font-semibold text-[var(--color-text-light)];
 }

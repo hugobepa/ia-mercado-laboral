@@ -1,0 +1,441 @@
+---
+// Error Boundary Component for Chart Errors
+// Provides graceful error handling and recovery options
+interface Props {
+  chartId?: string;
+  errorType?: "data" | "render" | "network" | "validation";
+  showRetry?: boolean;
+  retryAction?: string; // JavaScript function name to call
+  fallbackContent?: string;
+  className?: string;
+}
+
+const {
+  chartId = "unknown",
+  errorType = "data",
+  showRetry = true,
+  retryAction = "retryChart",
+  fallbackContent,
+  className = ""
+} = Astro.props;
+
+// Error messages by type - accessible and informative
+const errorMessages = {
+  data: {
+    title: "Error al cargar datos",
+    description: "No se pudieron cargar los datos necesarios para mostrar la gráfica.",
+    action: "Verificar conexión y intentar de nuevo"
+  },
+  render: {
+    title: "Error al renderizar gráfica",
+    description: "Hubo un problema al dibujar la gráfica con los datos disponibles.",
+    action: "Actualizar página para intentar de nuevo"
+  },
+  network: {
+    title: "Error de conexión", 
+    description: "No se pudo conectar al servidor para obtener los datos.",
+    action: "Verificar conexión a internet e intentar de nuevo"
+  },
+  validation: {
+    title: "Datos inválidos",
+    description: "Los datos recibidos no tienen el formato esperado.",
+    action: "Reportar el problema si persiste"
+  }
+};
+
+const currentError = errorMessages[errorType];
+const errorId = `error-${chartId}`;
+const retryId = `retry-${chartId}`;
+---
+
+<div 
+  class={`chart-error ${className}`}
+  role="alert"
+  aria-live="assertive"
+  aria-labelledby={`${errorId}-title`}
+  aria-describedby={`${errorId}-description`}
+>
+  <div class="error-content">
+    <!-- Error Icon -->
+    <div class="error-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path 
+          d="M12 9V11M12 15.01V15M21 12C21 16.97 16.97 21 12 21S3 16.97 3 12S7.03 3 12 3S21 7.03 21 12Z" 
+          stroke="currentColor" 
+          stroke-width="2" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"
+        />
+      </svg>
+    </div>
+
+    <!-- Error Content -->
+    <div class="error-text">
+      <h3 id={`${errorId}-title`} class="error-title">
+        {currentError.title}
+      </h3>
+      
+      <p id={`${errorId}-description`} class="error-description">
+        {currentError.description}
+      </p>
+
+      <!-- Fallback Content (if provided) -->
+      {fallbackContent && (
+        <div class="error-fallback">
+          <p class="fallback-label">Contenido alternativo:</p>
+          <div class="fallback-content" set:html={fallbackContent} />
+        </div>
+      )}
+
+      <!-- Action Buttons -->
+      <div class="error-actions">
+        {showRetry && (
+          <button
+            id={retryId}
+            type="button"
+            class="retry-button"
+            onclick={`${retryAction}('${chartId}')`}
+            aria-describedby={`${errorId}-description`}
+          >
+            <span class="retry-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path 
+                  d="M1 4V10H7M23 20V14H17M20.49 9A9 9 0 0 0 5.64 5.64L1 10M22.95 14.36A9 9 0 0 1 18.36 18.36L23 14" 
+                  stroke="currentColor" 
+                  stroke-width="2" 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+            Intentar de nuevo
+          </button>
+        )}
+
+        <button
+          type="button"
+          class="report-button"
+          onclick={`reportChartError('${chartId}', '${errorType}')`}
+        >
+          Reportar problema
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Technical Details (hidden by default, for debugging) -->
+  <details class="error-details">
+    <summary>Detalles técnicos</summary>
+    <dl class="error-metadata">
+      <dt>ID de gráfica:</dt>
+      <dd><code>{chartId}</code></dd>
+      
+      <dt>Tipo de error:</dt>
+      <dd><code>{errorType}</code></dd>
+      
+      <dt>Timestamp:</dt>
+      <dd><code id={`timestamp-${chartId}`}></code></dd>
+
+      <dt>User Agent:</dt>
+      <dd><code id={`useragent-${chartId}`}></code></dd>
+    </dl>
+  </details>
+</div>
+
+<!-- Retry Logic Script -->
+<script define:vars={{ chartId, errorType }}>
+  // Set timestamp and user agent for debugging
+  if (typeof document !== 'undefined') {
+    const timestampEl = document.getElementById(`timestamp-${chartId}`);
+    const useragentEl = document.getElementById(`useragent-${chartId}`);
+    
+    if (timestampEl) {
+      timestampEl.textContent = new Date().toISOString();
+    }
+    
+    if (useragentEl) {
+      useragentEl.textContent = navigator.userAgent;
+    }
+  }
+
+  // Global retry function (if not already defined)
+  if (typeof window !== 'undefined' && !window.retryChart) {
+    window.retryChart = function(chartId) {
+      console.log(`Retrying chart: ${chartId}`);
+      
+      // Attempt to reload chart via HTMX if available
+      if (typeof htmx !== 'undefined') {
+        const chartContainer = document.querySelector(`[data-chart-id="${chartId}"]`);
+        if (chartContainer) {
+          // Trigger HTMX reload
+          htmx.trigger(chartContainer, 'retry');
+          return;
+        }
+      }
+      
+      // Fallback: reload the page
+      window.location.reload();
+    };
+  }
+
+  // Global error reporting function
+  if (typeof window !== 'undefined' && !window.reportChartError) {
+    window.reportChartError = function(chartId, errorType) {
+      console.log(`Reporting error for chart: ${chartId}, type: ${errorType}`);
+      
+      // Here you could integrate with error reporting service
+      // For now, just log to console
+      const errorReport = {
+        chartId,
+        errorType,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        url: window.location.href
+      };
+      
+      console.error('Chart Error Report:', errorReport);
+      
+      // Optional: Send to analytics or error reporting service
+      if (typeof gtag !== 'undefined') {
+        gtag('event', 'chart_error', {
+          'chart_id': chartId,
+          'error_type': errorType,
+          'custom_parameter': JSON.stringify(errorReport)
+        });
+      }
+      
+      // Show user feedback
+      alert('Problema reportado. Gracias por ayudarnos a mejorar.');
+    };
+  }
+</script>
+
+<style>
+  .chart-error {
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    min-height: 12rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .error-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    max-width: 28rem;
+    text-align: center;
+  }
+  
+  .error-icon {
+    width: 3rem;
+    height: 3rem;
+    color: #ef4444;
+    flex-shrink: 0;
+  }
+  
+  .error-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+  
+  .error-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .error-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #7f1d1d;
+    margin-bottom: 0.5rem;
+  }
+  
+  .error-description {
+    font-size: 0.875rem;
+    color: #b91c1c;
+    line-height: 1.625;
+  }
+  
+  .error-fallback {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background-color: #fefce8;
+    border: 1px solid #fed7aa;
+    border-radius: 0.25rem;
+  }
+  
+  .fallback-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #92400e;
+    margin-bottom: 0.5rem;
+  }
+  
+  .fallback-content {
+    font-size: 0.875rem;
+    color: #b45309;
+  }
+  
+  .error-actions {
+    @apply flex flex-col sm:flex-row gap-2 mt-4;
+  }
+  
+  .retry-button {
+    @apply inline-flex items-center gap-2 px-4 py-2;
+    @apply bg-red-600 text-white font-medium rounded-md;
+    @apply hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2;
+    @apply transition-colors duration-200;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .retry-icon {
+    @apply w-4 h-4;
+  }
+  
+  .retry-icon svg {
+    @apply w-full h-full;
+  }
+  
+  .report-button {
+    @apply px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-md;
+    @apply hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+    @apply transition-colors duration-200;
+  }
+  
+  .error-details {
+    @apply mt-6 text-left;
+  }
+  
+  .error-details summary {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #991b1b;
+    cursor: pointer;
+  }
+
+  .error-details summary:hover {
+    color: #7f1d1d;
+  }
+
+  .error-details summary:focus {
+    outline: none;
+    text-decoration: underline;
+  }
+  
+  .error-metadata {
+    @apply mt-2 space-y-2 text-xs;
+  }
+  
+  .error-metadata dt {
+    @apply font-medium text-gray-600;
+  }
+  
+  .error-metadata dd {
+    @apply text-gray-500 font-mono break-all;
+  }
+  
+  .error-metadata code {
+    @apply bg-gray-100 px-1 py-0.5 rounded text-xs;
+  }
+
+  /* Loading state when retry is attempted */
+  .chart-error[data-retrying="true"] {
+    @apply opacity-75 pointer-events-none;
+  }
+  
+  .chart-error[data-retrying="true"] .retry-button::after {
+    @apply content-[""] absolute inset-0 bg-white bg-opacity-25;
+    @apply animate-pulse rounded-md;
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .chart-error {
+      @apply bg-red-900 bg-opacity-20 border-red-700;
+    }
+    
+    .error-title {
+      @apply text-red-100;
+    }
+    
+    .error-description {
+      @apply text-red-200;
+    }
+    
+    .error-icon {
+      @apply text-red-400;
+    }
+    
+    .retry-button {
+      @apply bg-red-700 hover:bg-red-800;
+    }
+    
+    .report-button {
+      @apply bg-gray-700 text-gray-200 hover:bg-gray-600;
+    }
+    
+    .error-details summary {
+      @apply text-red-300 hover:text-red-200;
+    }
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .chart-error {
+      @apply border-2;
+    }
+    
+    .retry-button {
+      @apply border-2 border-red-800;
+    }
+    
+    .report-button {
+      @apply border-2 border-gray-800;
+    }
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .chart-error {
+      @apply transition-none;
+    }
+    
+    .retry-button {
+      @apply transition-none;
+    }
+    
+    .report-button {
+      @apply transition-none;
+    }
+  }
+
+  /* Print styles */
+  @media print {
+    .chart-error {
+      @apply bg-gray-100 border-gray-400;
+    }
+    
+    .error-actions {
+      @apply hidden;
+    }
+    
+    .error-details {
+      @apply block;
+    }
+    
+    .error-details summary {
+      @apply list-none;
+    }
+    
+    .error-details summary::after {
+      @apply content-[":"] ml-1;
+    }
+  }
+</style>

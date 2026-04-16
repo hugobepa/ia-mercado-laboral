@@ -1,0 +1,29 @@
+@import "tailwindcss" reference;
+
+/* Tailwind 4.x - Utilidades personalizadas con @reference */
+@layer utilities {
+  .py-16 {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+  .hover\:shadow-lg:hover {
+    box-shadow:
+      0 10px 15px -3px rgb(0 0 0 / 0.1),
+      0 4px 6px -4px rgb(0 0 0 / 0.1);
+  }
+  .px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .mx-auto {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  /* Clases de fuente personalizada */
+  .font-heading {
+    font-family: "Manrope", sans-serif;
+  }
+  .font-body {
+    font-family: "Inter", sans-serif;
+  }
+}

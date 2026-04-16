@@ -2,15 +2,23 @@
   "barChart": {
     "chart": { "type": "bar", "height": 300 },
     "series": [
-      { "name": "Empleo riesgo", "data": [77234, 42356, 31245, 15167] }
+      { "name": "Empleo en riesgo", "data": [77234, 42356, 31245, 15167] }
     ],
-    "xaxis": { "categories": ["Comercio", "Hostelería", "Industria", "Tech"] },
+    "xaxis": { "categories": ["Comercio", "Hosteleria", "Industria", "Tech"] },
     "colors": ["#C86405", "#4A7C59", "#7B6F72"]
   },
   "donutChart": {
-    "chart": { "type": "donut" },
+    "chart": { "type": "donut", "height": 300 },
     "series": [9.8, 15.9, 74.3],
-    "labels": ["En riesgo ⚠️", "Mejoran con IA ✨", "Sin cambio ✅"],
+    "labels": ["En riesgo", "Mejoran con IA", "Sin cambio"],
     "colors": ["#C86405", "#4A7C59", "#7B6F72"]
+  },
+  "lineChart": {
+    "chart": { "type": "line", "height": 300 },
+    "series": [
+      { "name": "Indice de transformacion IA", "data": [11.2, 12.4, 13.9, 15.1, 16.2, 17.4, 18.8, 20.3, 21.7, 23.1, 24.8] }
+    ],
+    "xaxis": { "categories": ["2023", "2024", "2025", "2026", "2027", "2028", "2029", "2030", "2031", "2032", "2033"] },
+    "colors": ["#4A7C59"]
   }
 }

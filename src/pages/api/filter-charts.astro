@@ -1,0 +1,291 @@
+---
+// src/pages/api/filter-charts.astro
+// HTMX endpoint for dynamic chart filtering by province
+
+import { DataUtils } from '../../utils/data-loader.ts';
+import { formatPercent } from '../../utils/formatters.js';
+import { PROVINCES } from '../../utils/province-filter.ts';
+
+// This is an API endpoint - prevent it from being built as a static page
+export const prerender = false;
+
+export async function GET({ url }: { url: URL }) {
+  try {
+    const provinceId = url.searchParams.get('province') || 'all';
+    
+    // Load employment data using DataUtils
+    const overviewData = await DataUtils.getOverviewData(provinceId);
+    
+    // Data is already filtered by province if specified
+    const filteredData = overviewData;
+
+    // Calculate metrics for the filtered data
+    const metrics = {
+      unemploymentRate: calculateAverage(filteredData.unemployment || []),
+      employmentGrowth: calculateAverage(filteredData.aiImpact || []),
+      totalProvinces: provinceId === 'all' ? PROVINCES.length : 1,
+      dataPoints: (filteredData.unemployment?.length || 0) + (filteredData.aiImpact?.length || 0)
+    };
+
+    // Prepare chart data
+    const chartData = {
+      unemployment: prepareUnemploymentChartData(filteredData.unemployment || []),
+      sectors: prepareSectorChartData(filteredData.aiImpact || []),
+      growth: prepareGrowthChartData(filteredData.unemployment || [])
+    };
+
+    // Return HTML fragment for HTMX swap
+    const html = `
+      <div class="filtered-charts-container" data-province="${provinceId}">
+        <!-- Updated charts header -->
+        <div class="charts-header mb-6">
+          <h2 class="text-2xl font-heading font-bold text-[var(--color-text)] mb-2">
+            ${provinceId === 'all' ? 'Datos de toda España' : `Datos de ${getProvinceName(provinceId)}`}
+          </h2>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <div class="metric-card bg-white p-4 rounded-lg shadow-sm">
+              <div class="text-sm text-[var(--color-text-light)]">Tasa de desempleo</div>
+              <div class="text-lg font-semibold text-[var(--color-primary)]">
+                ${formatPercent(metrics.unemploymentRate) || 'N/A'}
+              </div>
+            </div>
+            <div class="metric-card bg-white p-4 rounded-lg shadow-sm">
+              <div class="text-sm text-[var(--color-text-light)]">Crecimiento empleo</div>
+              <div class="text-lg font-semibold ${(metrics.employmentGrowth || 0) >= 0 ? 'text-[var(--color-secondary)]' : 'text-red-500'}">
+                ${formatPercent(metrics.employmentGrowth) || 'N/A'}
+              </div>
+            </div>
+            <div class="metric-card bg-white p-4 rounded-lg shadow-sm">
+              <div class="text-sm text-[var(--color-text-light)]">Provincias</div>
+              <div class="text-lg font-semibold text-[var(--color-text)]">
+                ${metrics.totalProvinces}
+              </div>
+            </div>
+            <div class="metric-card bg-white p-4 rounded-lg shadow-sm">
+              <div class="text-sm text-[var(--color-text-light)]">Puntos de datos</div>
+              <div class="text-lg font-semibold text-[var(--color-text)]">
+                ${metrics.dataPoints}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Updated Bar Chart -->
+        <div class="chart-section mb-8">
+          <h3 class="text-xl font-heading font-semibold mb-4">Desempleo por sector</h3>
+          <div 
+            id="unemployment-bar-chart" 
+            class="chart-container"
+            data-chart-type="bar"
+            data-chart-data='${JSON.stringify(chartData.unemployment)}'
+          ></div>
+        </div>
+
+        <!-- Updated Donut Chart -->
+        <div class="chart-section mb-8">
+          <h3 class="text-xl font-heading font-semibold mb-4">Distribución sectorial</h3>
+          <div 
+            id="sectors-donut-chart" 
+            class="chart-container"
+            data-chart-type="donut"
+            data-chart-data='${JSON.stringify(chartData.sectors)}'
+          ></div>
+        </div>
+
+        <!-- Updated Growth Chart -->
+        <div class="chart-section mb-8">
+          <h3 class="text-xl font-heading font-semibold mb-4">Evolución del empleo</h3>
+          <div 
+            id="growth-line-chart" 
+            class="chart-container"
+            data-chart-type="line"
+            data-chart-data='${JSON.stringify(chartData.growth)}'
+          ></div>
+        </div>
+
+        <!-- Accessibility: Data tables for screen readers -->
+        <div class="sr-only">
+          <h3>Datos tabulares para lectores de pantalla</h3>
+          <table>
+            <caption>Datos de empleo ${provinceId === 'all' ? 'nacional' : 'por provincia'}</caption>
+            <thead>
+              <tr>
+                <th>Sector</th>
+                <th>Tasa de desempleo (%)</th>
+                <th>Crecimiento (%)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${generateDataTableRows(filteredData.unemployment || [])}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <script>
+        // Re-initialize charts after HTMX swap
+        document.addEventListener('DOMContentLoaded', () => {
+          initializeFilteredCharts();
+        });
+
+        function initializeFilteredCharts() {
+          const chartContainers = document.querySelectorAll('[data-chart-type]');
+          
+          chartContainers.forEach(container => {
+            const chartType = container.getAttribute('data-chart-type');
+            const chartData = JSON.parse(container.getAttribute('data-chart-data') || '{}');
+            
+            // Clear existing chart
+            container.innerHTML = '';
+            
+            // Initialize ApexChart based on type
+            switch(chartType) {
+              case 'bar':
+                initializeBarChart(container.id, chartData);
+                break;
+              case 'donut':
+                initializeDonutChart(container.id, chartData);
+                break;
+              case 'line':
+                initializeLineChart(container.id, chartData);
+                break;
+              default:
+                console.warn('Unknown chart type:', chartType);
+            }
+          });
+        }
+
+        // Announce update to screen readers
+        const announcement = document.createElement('div');
+        announcement.setAttribute('aria-live', 'assertive');
+        announcement.setAttribute('aria-atomic', 'true');
+        announcement.className = 'sr-only';
+        announcement.textContent = 'Gráficas actualizadas con nuevos datos filtrados';
+        document.body.appendChild(announcement);
+        
+        setTimeout(() => {
+          if (document.body.contains(announcement)) {
+            document.body.removeChild(announcement);
+          }
+        }, 2000);
+      </script>
+    `;
+
+    return new Response(html, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'public, max-age=300', // Cache for 5 minutes
+      }
+    });
+
+  } catch (error) {
+    console.error('Error filtering charts:', error);
+    
+    // Return error state HTML
+    const errorHtml = `
+      <div class="error-state p-6 bg-red-50 border border-red-200 rounded-lg">
+        <h3 class="text-lg font-semibold text-red-800 mb-2">Error al cargar datos</h3>
+        <p class="text-red-700 mb-4">
+          No se pudieron cargar los datos filtrados. Por favor, intenta de nuevo.
+        </p>
+        <button 
+          onclick="location.reload()"
+          class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+        >
+          Recargar página
+        </button>
+      </div>
+    `;
+
+    return new Response(errorHtml, {
+      status: 500,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8'
+      }
+    });
+  }
+}
+
+// Helper functions
+function calculateAverage(data: Array<{value: number}>): number | null {
+  if (!Array.isArray(data) || data.length === 0) return null;
+  
+  const values = data
+    .map(item => item.value)
+    .filter(value => typeof value === 'number' && !isNaN(value));
+  
+  return values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : null;
+}
+
+function getProvinceName(provinceId: string): string {
+  // This would normally come from a provinces data file
+  const provinceNames: Record<string, string> = {
+    'barcelona': 'Barcelona',
+    'madrid': 'Madrid',
+    'valencia': 'Valencia',
+    'sevilla': 'Sevilla',
+    // Add more provinces as needed
+  };
+  
+  return provinceNames[provinceId] || provinceId.charAt(0).toUpperCase() + provinceId.slice(1);
+}
+
+function prepareUnemploymentChartData(data: Array<{label: string, value: number}>) {
+  if (!Array.isArray(data) || data.length === 0) {
+    return { series: [{ data: [] }] };
+  }
+
+  return {
+    series: [{
+      data: data.map(item => ({
+        x: item.label,
+        y: item.value
+      }))
+    }]
+  };
+}
+
+function prepareSectorChartData(data: Array<{label: string, value: number}>) {
+  if (!Array.isArray(data) || data.length === 0) {
+    return { series: [], labels: [] };
+  }
+
+  return {
+    series: data.map(item => item.value),
+    labels: data.map(item => item.label)
+  };
+}
+
+function prepareGrowthChartData(data: Array<{label: string, value: number}>) {
+  if (!Array.isArray(data) || data.length === 0) {
+    return { series: [{ name: 'Crecimiento del empleo', data: [] }] };
+  }
+
+  return {
+    series: [{
+      name: 'Crecimiento del empleo',
+      data: data.map((item, index) => ({
+        x: item.label,
+        y: item.value
+      }))
+    }]
+  };
+}
+
+function generateDataTableRows(data: Array<{label: string, value: number}>): string {
+  if (!Array.isArray(data) || data.length === 0) {
+    return '<tr><td colspan="3">No hay datos disponibles</td></tr>';
+  }
+
+  return data
+    .map(item => `
+      <tr>
+        <td>${item.label}</td>
+        <td>${formatPercent(item.value) || 'N/A'}</td>
+        <td>-</td>
+      </tr>
+    `)
+    .join('');
+}
+---

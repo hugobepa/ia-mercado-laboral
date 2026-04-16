@@ -86,3 +86,18 @@ Ver `DESIGN.md` en raíz para:
 **Última actualización**: Fase C1
 **Versión**: 1.0
 **Estado**: ✅ Activo
+
+## Metadatos y skills
+
+- Ratificación: TODO(RATIFICATION_DATE) # si no hay fecha, completar
+- Última enmienda: 2026-04-14
+- Skills requeridas: `speckit-git-initialize`, `astro`, `tailwind-css-patterns`, `frontend-design`
+
+## Notas de uso
+
+- Estos principios se basan en `constitution.md`, `DESIGN.md` y `package.json` (Astro 6, Tailwind 4, Bun).
+- Para generar/ajustar la constitución de forma interactiva usa la extensión Copilot/Specify en VS Code y ejecuta el slash command `/speckit.constitution` con el prompt apropiado.
+
+---
+
+Si necesitas, aplico ahora un `scripts.speckit` local en `package.json` para poder ejecutar el flujo desde terminal (opción alternativa a la UI).
