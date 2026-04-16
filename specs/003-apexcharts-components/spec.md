@@ -1,6 +1,6 @@
 # Feature Specification: ApexCharts Components
 
-**Feature Branch**: `[003-add-ui-base-components]`  
+**Feature Branch**: `[003-apexcharts-components]`  
 **Created**: April 16, 2026  
 **Status**: Draft  
 **Input**: User description: "Crear componentes Astro reutilizables para graficas ApexCharts (bar, donut, line), con configuracion desde datos internos y comportamiento interactivo responsive."

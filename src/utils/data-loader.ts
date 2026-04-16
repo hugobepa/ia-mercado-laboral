@@ -5,12 +5,15 @@ import type {
   ChartData,
   ChartDataProvider,
   DataFilters,
-  DataSource,
   EmploymentData,
   ErrorState,
   Province,
   SourceMetadata,
 } from "./types";
+import { DataSource } from "./types";
+
+const isDefined = <T>(value: T | null | undefined): value is T =>
+  value !== null && value !== undefined;
 
 /**
  * Static Data Paths - JSON files in src/data/
@@ -80,6 +83,39 @@ export function validateChartData(data: unknown): data is ChartData[] {
 }
 
 /**
+ * Normalize chart-like input to a safe ChartData[] structure.
+ * Invalid numeric values are converted to 0 and empty labels are discarded.
+ */
+export function normalizeChartDataConfig(data: unknown): ChartData[] {
+  if (!Array.isArray(data)) return [];
+
+  return data
+    .map((item) => {
+      if (!item || typeof item !== "object") return undefined;
+
+      const record = item as {
+        label?: unknown;
+        value?: unknown;
+        metadata?: unknown;
+      };
+      const label = typeof record.label === "string" ? record.label.trim() : "";
+      const valueNumber = Number(record.value);
+
+      if (!label) return undefined;
+
+      return {
+        label,
+        value: Number.isFinite(valueNumber) ? valueNumber : 0,
+        metadata:
+          record.metadata && typeof record.metadata === "object"
+            ? (record.metadata as Record<string, unknown>)
+            : undefined,
+      } satisfies ChartData;
+    })
+    .filter(isDefined);
+}
+
+/**
  * Load and parse JSON file safely
  */
 async function loadJSON<T>(path: string): Promise<T> {
@@ -145,7 +181,7 @@ export function transformToChartData(
     return employment
       .map((emp) => {
         const value = emp.metrics[metric];
-        if (typeof value !== "number") return null;
+        if (typeof value !== "number") return undefined;
 
         return {
           label: emp.province || "Nacional",
@@ -155,9 +191,9 @@ export function transformToChartData(
             year: emp.year,
             collection_date: emp.metadata.collection_date,
           },
-        };
+        } satisfies ChartData;
       })
-      .filter((item): item is ChartData => item !== null);
+      .filter(isDefined);
   } catch (error) {
     throw new DataLoadingError(
       `Error transforming data for metric ${metric}: ${error instanceof Error ? error.message : "Unknown error"}`,

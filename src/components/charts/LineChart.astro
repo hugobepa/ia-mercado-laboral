@@ -1,26 +1,26 @@
 ---
 import chartsConfig from "../../data/charts-config.json";
-import { buildBarOptions, getRouteSafeCtaHref } from "../../utils/chart-helpers.js";
+import { buildLineOptions, getRouteSafeCtaHref } from "../../utils/chart-helpers.js";
 
 interface Props {
   title?: string;
   ariaLabel?: string;
-  config?: typeof chartsConfig.barChart;
+  config?: typeof chartsConfig.lineChart;
   currentPath?: string;
   ctaLabel?: string;
 }
 
 const {
-  title = "Empleo en riesgo por sector",
-  ariaLabel = "Grafica de barras de empleo en riesgo por sector",
-  config = chartsConfig.barChart,
+  title = "Tendencia 2023-2033 de transformacion IA",
+  ariaLabel = "Grafica de lineas con tendencia anual 2023 a 2033",
+  config = chartsConfig.lineChart,
   currentPath = Astro.url.pathname,
   ctaLabel = "Volver a filtros",
 } = Astro.props as Props;
 
-const chartId = `bar-chart-${Math.random().toString(36).slice(2, 9)}`;
+const chartId = `line-chart-${Math.random().toString(36).slice(2, 9)}`;
 const safeHref = getRouteSafeCtaHref(currentPath, "datos");
-const options = buildBarOptions(config, title, ariaLabel);
+const options = buildLineOptions(config, title, ariaLabel);
 const serialized = options ? JSON.stringify(options) : "";
 ---
 
@@ -38,7 +38,7 @@ const serialized = options ? JSON.stringify(options) : "";
     />
   ) : (
     <div class="rounded-lg border border-[var(--color-neutral-dark)] bg-white p-4" aria-live="polite">
-      <p class="text-sm font-medium text-[var(--color-text)]">No se pudo cargar la grafica de barras.</p>
+      <p class="text-sm font-medium text-[var(--color-text)]">No se pudo cargar la grafica de lineas.</p>
       <p class="mt-1 text-sm text-[var(--color-text-light)]">Configura datos validos o vuelve a filtros.</p>
       <div class="mt-3 flex gap-2">
         <a class="focus-ring rounded bg-[var(--color-primary)] px-3 py-2 text-sm text-white" href={safeHref}>{ctaLabel}</a>

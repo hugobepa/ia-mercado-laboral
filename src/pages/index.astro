@@ -2,6 +2,7 @@
 import Button from "../components/ui/Button.astro";
 import Card from "../components/ui/Card.astro";
 import Table from "../components/ui/Table.astro";
+import DataSection from "../components/sections/DataSection.astro";
 import chartsConfig from "../data/charts-config.json";
 import idescatData from "../data/idescat-provincias.json";
 import randstadData from "../data/randstad-catalunya.json";
@@ -42,7 +43,7 @@ const chartSummary = {
       </h1>
       <p class="max-w-2xl text-[var(--color-text-light)]">
         Este prototipo integra componentes base accesibles para acciones, tarjetas, tablas y
-        navegación responsive usando datos internos en JSON.
+        navegacion responsive usando datos internos en JSON.
       </p>
       <div class="flex flex-wrap gap-3">
         <Button variant="primary" href="#datos">Ver datos clave</Button>
@@ -77,7 +78,9 @@ const chartSummary = {
       />
     </section>
 
-    <section id="graficos" aria-labelledby="tabla-title" class="space-y-4">
+    <DataSection />
+
+    <section id="tablas" aria-labelledby="tabla-title" class="space-y-4">
       <h2 id="tabla-title" class="font-bold">Tabla responsive por sector</h2>
       <Table
         caption="Sectores de Catalunya mas afectados por IA"

@@ -7,6 +7,7 @@ import {
   type NavItem,
 } from "../utils/navigation-path";
 import htmxScriptUrl from "htmx.org/dist/htmx.min.js?url";
+import chartReinitScriptUrl from "../utils/chart-reinitialization.js?url";
 
 interface Props {
   title: string;
@@ -46,6 +47,7 @@ const navItems = (nav ?? defaultNav).map((item) => ({
     <meta name="description" content={description} />
     <title>{title}</title>
     <script defer src={htmxScriptUrl}></script>
+    <script defer src={chartReinitScriptUrl}></script>
   </head>
   <body>
     <a href="#main-content" class="skip-link">Saltar al contenido principal</a>

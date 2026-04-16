@@ -159,7 +159,7 @@ export interface ChartDataProvider {
   // Data Access
   getData(source: DataSource, filters?: DataFilters): Promise<ChartData[]>;
   getProvinces(): Province[];
-  getSources(): SourceMetadata[];
+  getSources(): Promise<SourceMetadata[]>;
 
   // Filtering
   filterByProvince(data: ChartData[], province: string | "all"): ChartData[];
