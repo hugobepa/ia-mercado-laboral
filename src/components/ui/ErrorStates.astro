@@ -1,6 +1,7 @@
 ---
 // Error States Component for HTMX Chart Filtering
 // Comprehensive error handling with accessibility and user guidance
+import { normalizeBasePath, resolveInternalHref } from "../../utils/navigation-path";
 
 interface ErrorProps {
   type?: 'network' | 'timeout' | 'data' | 'validation' | 'generic';
@@ -94,6 +95,8 @@ const iconSizes = {
 
 const finalTitle = title || config.defaultTitle;
 const finalMessage = message || config.defaultMessage;
+const basePath = normalizeBasePath(import.meta.env.BASE_URL);
+const homeHref = resolveInternalHref("/", basePath);
 ---
 
 <div 
@@ -153,7 +156,8 @@ const finalMessage = message || config.defaultMessage;
 
       {showHome && (
         <a
-          href="/"
+          href={homeHref}
+          data-home-link
           class="px-4 py-2 border border-gray-300 rounded font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
         >
           Ir al inicio
@@ -320,7 +324,7 @@ const finalMessage = message || config.defaultMessage;
     
     // Press 'h' to go home
     if (event.key.toLowerCase() === 'h' && !event.ctrlKey && !event.altKey) {
-      const homeLink = errorState.querySelector('a[href="/"]') as HTMLAnchorElement;
+      const homeLink = errorState.querySelector('[data-home-link]') as HTMLAnchorElement;
       if (homeLink) {
         event.preventDefault();
         homeLink.click();

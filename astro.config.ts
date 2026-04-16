@@ -4,9 +4,11 @@ import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
 
 const deployTarget = process.env.PUBLIC_DEPLOY_TARGET ?? "local";
-const isGitHubPages = deployTarget === "github-pages";
-const site = process.env.PUBLIC_SITE_URL ?? "https://example.github.io";
-const rawBasePath = process.env.PUBLIC_BASE_PATH ?? "";
+const isGitHubPages =
+  deployTarget === "github-pages" || process.env.GITHUB_ACTIONS === "true";
+const site = process.env.PUBLIC_SITE_URL ?? "https://hugobepa.github.io";
+const rawBasePath =
+  process.env.PUBLIC_BASE_PATH ?? (isGitHubPages ? "ia-mercado-laboral" : "");
 const normalizedBasePath = rawBasePath
   ? `/${rawBasePath.replace(/^\/+|\/+$/g, "")}`
   : "";
@@ -23,7 +25,7 @@ export default defineConfig({
           mode: "standalone",
         }),
       }),
-  trailingSlash: "ignore",
+  trailingSlash: "always",
 
   // Remover integrations - usaremos Tailwind 4.x via Vite
 

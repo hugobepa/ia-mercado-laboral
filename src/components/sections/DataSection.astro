@@ -11,9 +11,11 @@ const currentPath = Astro.url.pathname;
 
 const randstadKpi = randstadData?.cifras_clave_catalunya_2033;
 const exposicion = randstadData?.exposicion_ia_catalunya_2024;
+const sectoresAfectados = randstadData?.sectores_catalunya_mas_afectados;
 
 const hasRandstad = Boolean(randstadKpi);
 const hasExposicion = Boolean(exposicion);
+const hasSectores = Array.isArray(sectoresAfectados) && sectoresAfectados.length > 0;
 ---
 
 <section id={SECTION_IDS.datos} class="section-landmark page-shell space-y-6 py-8" aria-labelledby="datos-title">
@@ -21,15 +23,17 @@ const hasExposicion = Boolean(exposicion);
     <p class="metric-label">Datos clave Randstad + Idescat</p>
     <h2 id="datos-title" class="section-heading">Resumen laboral</h2>
     <p class="section-copy max-w-3xl text-sm sm:text-base">
-      Esta seccion muestra indicadores clave de mercado laboral sin bloques territoriales ni visualizaciones.
+      Esta seccion muestra indicadores clave de mercado laboral para dar contexto rapido del impacto de la IA.
     </p>
   </header>
 
   {hasRandstad ? (
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <Card variant="data" title={formatNumberOrFallback(randstadKpi.ocupados_actuales_2023)} subtitle="Ocupados en Catalunya" eyebrow="Mercado laboral" />
+      <Card variant="data" title={formatNumberOrFallback(randstadKpi.empleo_riesgo_automatizacion)} subtitle="Empleo en riesgo de automatizacion" eyebrow="Impacto IA" />
       <Card variant="data" title={formatPercentOrFallback(randstadKpi.porcentaje_riesgo)} subtitle="Empleo en riesgo" eyebrow="Impacto IA" />
       <Card variant="data" title={formatNumberOrFallback(randstadKpi.nuevos_empleos_creados)} subtitle="Nuevos empleos estimados" eyebrow="Proyeccion" />
+      <Card variant="data" title={formatNumberOrFallback(randstadKpi.efecto_neto_estimado)} subtitle="Efecto neto estimado" eyebrow="Balance" />
     </div>
   ) : (
     <Card
@@ -53,6 +57,12 @@ const hasExposicion = Boolean(exposicion);
       />
       <Card
         variant="demographic"
+        title={formatPercentOrFallback(exposicion.riesgo_alto_automatizacion_pct)}
+        subtitle="Riesgo alto de automatizacion"
+        eyebrow="Otros datos"
+      />
+      <Card
+        variant="demographic"
         title={formatPercentOrFallback(exposicion.empresas_con_ia_pct)}
         subtitle="Empresas con IA"
         eyebrow="Otros datos"
@@ -63,6 +73,54 @@ const hasExposicion = Boolean(exposicion);
         subtitle="Transformacion prevista (5 anos)"
         eyebrow="Otros datos"
       />
+      <Card
+        variant="demographic"
+        title={formatPercentOrFallback(exposicion.comparativa_ocde)}
+        subtitle="Media OCDE (fuerza laboral expuesta)"
+        eyebrow="Comparativa"
+      />
     </div>
   )}
+
+  <div class="space-y-3">
+    <h3 class="text-lg font-bold text-[var(--color-text)]">Puestos que se perderian y ganarian por sector</h3>
+
+    {hasSectores ? (
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {sectoresAfectados.map((sector) => (
+          <Card
+            variant="demographic"
+            title={sector?.sector ?? "Sector sin nombre"}
+            subtitle={sector?.ejemplo_cotidiano ?? ""}
+            eyebrow="Impacto por sector"
+          >
+            <dl class="space-y-2 text-sm text-[var(--color-text)]">
+              <div class="flex items-center justify-between gap-3">
+                <dt class="text-[var(--color-text-light)]">Puestos en riesgo</dt>
+                <dd class="font-semibold">{formatNumberOrFallback(sector?.empleo_riesgo)}</dd>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <dt class="text-[var(--color-text-light)]">Puestos ganados</dt>
+                <dd class="font-semibold">{formatNumberOrFallback(sector?.nuevos_empleos)}</dd>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <dt class="text-[var(--color-text-light)]">Efecto neto</dt>
+                <dd class="font-semibold">{formatNumberOrFallback(sector?.efecto_neto)}</dd>
+              </div>
+            </dl>
+          </Card>
+        ))}
+      </div>
+    ) : (
+      <Card
+        variant="demographic"
+        title="Impacto por sector no disponible"
+        eyebrow="Estado de datos"
+        empty={true}
+        emptyMessage="No pudimos cargar el detalle sectorial en este momento."
+        emptyCtaLabel="Reintentar"
+        emptyCtaHref={currentPath}
+      />
+    )}
+  </div>
 </section>

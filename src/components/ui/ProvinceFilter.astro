@@ -1,6 +1,7 @@
 ---
 // src/components/ui/ProvinceFilter.astro
 // Province dropdown filter component for dynamic chart updates
+import { normalizeBasePath, resolveInternalHref } from "../../utils/navigation-path";
 
 interface Props {
   currentProvince?: string;
@@ -23,6 +24,9 @@ const allProvinces = [
   { id: "all", name: "Todas las provincias", region: "España" },
   ...provinces
 ];
+
+const basePath = normalizeBasePath(import.meta.env.BASE_URL);
+const filterChartsEndpoint = resolveInternalHref("/api/filter-charts", basePath);
 ---
 
 <div class="province-filter">
@@ -44,7 +48,7 @@ const allProvinces = [
       hover:border-[var(--color-primary-hover)]
       transition-colors duration-200
     "
-    hx-get={`/api/filter-charts?province={value}`}
+    hx-get={`${filterChartsEndpoint}?province={value}`}
     hx-target={`#${targetElementId}`}
     hx-swap="innerHTML"
     hx-indicator="#loading-indicator"

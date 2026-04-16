@@ -1,6 +1,24 @@
 // Client-side validation for province selection and filtering
 // Comprehensive validation with user feedback and error recovery
 
+const BASE_URL = import.meta.env.BASE_URL || "/";
+
+function withBasePath(path) {
+  if (!path.startsWith("/")) {
+    return path;
+  }
+
+  if (BASE_URL === "/") {
+    return path;
+  }
+
+  const normalizedBase = BASE_URL.endsWith("/")
+    ? BASE_URL.slice(0, -1)
+    : BASE_URL;
+
+  return `${normalizedBase}${path}`;
+}
+
 /**
  * Province Selection Validator
  * Handles client-side validation for province filtering with accessibility
@@ -82,7 +100,7 @@ class ProvinceValidator {
 
     // Try to load additional provinces dynamically
     try {
-      const response = await fetch("/api/provinces");
+      const response = await fetch(withBasePath("/api/provinces"));
       if (response.ok) {
         const additionalProvinces = await response.json();
         additionalProvinces.forEach((province) => {
@@ -137,7 +155,7 @@ class ProvinceValidator {
       test: async (value) => {
         try {
           const response = await fetch(
-            `/api/check-data?province=${encodeURIComponent(value)}`,
+            `${withBasePath("/api/check-data")}?province=${encodeURIComponent(value)}`,
           );
           return response.ok;
         } catch (error) {

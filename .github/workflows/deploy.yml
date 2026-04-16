@@ -33,6 +33,9 @@ jobs:
         run: bun run build
         env:
           NODE_ENV: production
+          PUBLIC_DEPLOY_TARGET: github-pages
+          PUBLIC_SITE_URL: https://hugobepa.github.io
+          PUBLIC_BASE_PATH: ia-mercado-laboral
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

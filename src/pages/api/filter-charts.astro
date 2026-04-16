@@ -6,8 +6,9 @@ import { DataUtils } from '../../utils/data-loader.ts';
 import { formatPercent } from '../../utils/formatters.js';
 import { PROVINCES } from '../../utils/province-filter.ts';
 
-// This is an API endpoint - prevent it from being built as a static page
-export const prerender = false;
+// Keep endpoint static-compatible for GitHub Pages builds.
+// Query params still work as client hints, but static hosting serves a prebuilt response.
+export const prerender = true;
 
 export async function GET({ url }: { url: URL }) {
   try {

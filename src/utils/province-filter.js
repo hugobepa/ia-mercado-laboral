@@ -3,14 +3,32 @@
 
 import { CATALUNYA_PROVINCES } from "./data-loader.ts";
 
+const BASE_URL = import.meta.env.BASE_URL || "/";
+
+function withBasePath(path) {
+  if (!path.startsWith("/")) {
+    return path;
+  }
+
+  if (BASE_URL === "/") {
+    return path;
+  }
+
+  const normalizedBase = BASE_URL.endsWith("/")
+    ? BASE_URL.slice(0, -1)
+    : BASE_URL;
+
+  return `${normalizedBase}${path}`;
+}
+
 /**
  * Province Filter Configuration
  */
 const FILTER_CONFIG = {
   // HTMX endpoints for dynamic updates
   endpoints: {
-    chartUpdate: "/api/charts/update",
-    statsUpdate: "/api/stats/update",
+    chartUpdate: withBasePath("/api/charts/update"),
+    statsUpdate: withBasePath("/api/stats/update"),
   },
 
   // Debounce delay for filter changes (UX)
