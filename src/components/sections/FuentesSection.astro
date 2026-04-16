@@ -35,13 +35,6 @@ interface FuenteView {
   anio?: number;
 }
 
-const ALL_CATEGORY = "todas";
-const DEFAULT_CATEGORIES = [
-  { id: "gubernamental", nombre: "Gubernamental" },
-  { id: "universidad", nombre: "Universidad" },
-  { id: "fundacion", nombre: "Fundacion/Organismo" },
-];
-
 const basePath = normalizeBasePath(import.meta.env.BASE_URL);
 const sectionHref = resolveInternalHref("/fuentes/", basePath);
 
@@ -100,27 +93,7 @@ const fuentes: FuenteView[] = validFuentes.map((item) => {
   };
 });
 
-const availableCategories =
-  Array.isArray(fuentesData?.categorias) && fuentesData.categorias.length > 0
-    ? fuentesData.categorias.map((item) => ({
-        id: normalizeCategory(item?.id),
-        nombre: formatTextOrFallback(item?.nombre, "Categoria"),
-      }))
-    : DEFAULT_CATEGORIES;
-
-const dedupedCategories = availableCategories.filter(
-  (item, index, self) =>
-    item.id !== "otros" && self.findIndex((candidate) => candidate.id === item.id) === index,
-);
-
-const selectedCategoryRaw = Astro.url.searchParams.get("categoria") ?? ALL_CATEGORY;
-const selectedCategory =
-  selectedCategoryRaw === ALL_CATEGORY ? ALL_CATEGORY : normalizeCategory(selectedCategoryRaw);
-
-const filteredFuentes =
-  selectedCategory === ALL_CATEGORY
-    ? fuentes
-    : fuentes.filter((item) => item.categoria === selectedCategory);
+const filteredFuentes = fuentes;
 
 const hasMinimumData = fuentes.length >= 8;
 
@@ -180,50 +153,23 @@ const tableRows = filteredFuentes.map((item) => ({
   <section class="surface-card p-4 sm:p-5" aria-labelledby="filter-title">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div class="space-y-2">
-        <h3 id="filter-title" class="text-lg font-bold text-[var(--color-text)]">Filtrar por categoria</h3>
+        <h3 id="filter-title" class="text-lg font-bold text-[var(--color-text)]">Tabla de enlaces (sin filtro)</h3>
         <p class="text-sm text-[var(--color-text-light)]">
-          Seleccion unica. Mantiene visibles tarjetas y tabla con los mismos campos.
+          Se muestra el listado completo de fuentes para evitar dependencias de filtros y endpoints dinamicos.
         </p>
       </div>
-
-      <form method="get" action={sectionHref} class="flex flex-col gap-2 sm:flex-row sm:items-center" aria-label="Filtro de categoria de fuentes">
-        <label for="category-filter" class="text-sm font-medium text-[var(--color-text)]">Categoria</label>
-        <select
-          id="category-filter"
-          name="categoria"
-          class="focus-ring rounded-t-xl rounded-b-lg border border-[var(--color-neutral-dark)] bg-[var(--color-neutral)] px-3 py-2 text-sm text-[var(--color-text)]"
-        >
-          <option value={ALL_CATEGORY} selected={selectedCategory === ALL_CATEGORY}>Todas</option>
-          {dedupedCategories.map((category) => (
-            <option value={category.id} selected={selectedCategory === category.id}>
-              {category.nombre}
-            </option>
-          ))}
-        </select>
-        <button
-          type="submit"
-          class="focus-ring touch-target rounded-t-xl rounded-b-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-[var(--color-neutral)]"
-        >
-          Aplicar
-        </button>
-        <a
-          href={sectionHref}
-          class="focus-ring touch-target inline-flex items-center justify-center rounded-t-xl rounded-b-lg border border-[var(--color-neutral-dark)] px-4 py-2 text-sm font-medium text-[var(--color-text)]"
-        >
-          Limpiar
-        </a>
-      </form>
+      <p class="text-sm font-medium text-[var(--color-text-light)]">Registros visibles: {filteredFuentes.length}</p>
     </div>
   </section>
 
   {filteredFuentes.length === 0 ? (
     <Card
       variant="demographic"
-      title="Sin resultados para esta categoria"
-      eyebrow="Filtro activo"
+      title="Sin fuentes disponibles"
+      eyebrow="Estado del listado"
       empty={true}
-      emptyMessage="No hay coincidencias con el filtro seleccionado."
-      emptyCtaLabel="Limpiar filtro"
+      emptyMessage="No hay registros de fuentes validos para mostrar."
+      emptyCtaLabel="Reintentar"
       emptyCtaHref={sectionHref}
     />
   ) : (
@@ -298,8 +244,8 @@ const tableRows = filteredFuentes.map((item) => ({
           columns={tableColumns}
           rows={tableRows}
           caption="Fuentes y referencias del estudio"
-          emptyMessage="No hay datos para la categoria seleccionada."
-          emptyCtaLabel="Limpiar filtro"
+          emptyMessage="No hay datos de fuentes disponibles."
+          emptyCtaLabel="Reintentar"
           emptyCtaHref={sectionHref}
         />
       </div>
